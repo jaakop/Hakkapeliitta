@@ -13,7 +13,7 @@ using ReeGame.Components;
 
 namespace ReeGame
 {
-    public class Game1 : Game
+    public class Game : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
@@ -33,7 +33,7 @@ namespace ReeGame
 
         Camera2D camera;
 
-        public Game1()
+        public Game()
         {
 
             graphics = new GraphicsDeviceManager(this);
