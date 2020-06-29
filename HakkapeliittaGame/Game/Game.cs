@@ -18,7 +18,7 @@ namespace ReeGame
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        Dictionary<Entity, Transform> transfroms;
+        Dictionary<Entity, Transform> transforms;
         Dictionary<Entity, RigidBody> rigidBodies;
         Dictionary<Entity, Sprite> sprites;
 
@@ -50,7 +50,7 @@ namespace ReeGame
 
             camera = new Camera2D(new Vector(0, 0), 0.5f);
 
-            transfroms = new Dictionary<Entity, Transform>();
+            transforms = new Dictionary<Entity, Transform>();
             rigidBodies = new Dictionary<Entity, RigidBody>();
             sprites = new Dictionary<Entity, Sprite>();
 
@@ -64,11 +64,20 @@ namespace ReeGame
 
             group = CreateNewGroup(palikka1);
 
-            for(int i = 0; i < 10; i++)
+            for(int i = 0; i < 15 - 1; i++)
             {
                 Entity palikka = Entity.NewEntity();
                 CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
                 AddMemberToGroup(palikka, group);
+            }
+
+            Dictionary<Entity, Vector> groupPositions = groups[group].CalculateGroupMemberPositions(transforms[palikka1], 5, 150);
+
+            foreach(KeyValuePair<Entity, Vector> position in groupPositions)
+            {
+                Transform transform = transforms[position.Key];
+                transform.Position = position.Value;
+                transforms[position.Key] = transform;
             }
 
             base.Initialize();
@@ -132,22 +141,22 @@ namespace ReeGame
             }
             */
 
-            if(transfroms.ContainsKey(targetPalikka))
-                velocity = Vector.Lerp(transfroms[palikka1].Position, transfroms[targetPalikka].Position, 0.1f) * movementSpeed;
+            if(transforms.ContainsKey(targetPalikka))
+                velocity = Vector.Lerp(transforms[palikka1].Position, transforms[targetPalikka].Position, 0.1f) * movementSpeed;
 
             if (Math.Abs(velocity.X) > movementSpeed)
                 velocity.X = (velocity.X / Math.Abs(velocity.X)) * movementSpeed;
             if (Math.Abs(velocity.Y) > movementSpeed)
                 velocity.Y = (velocity.Y / Math.Abs(velocity.Y)) * movementSpeed;
 
-            PhysicsSystem.MoveEntity(palikka1, velocity, ref transfroms, rigidBodies);
+            PhysicsSystem.MoveEntity(palikka1, velocity, ref transforms, rigidBodies);
 
             foreach(Entity member in groups[group].Members)
             {
-                PhysicsSystem.MoveEntity(member, new Vector(1, 0), ref transfroms, rigidBodies);
+                //PhysicsSystem.MoveEntity(member, new Vector(1, 0), ref transforms, rigidBodies);
             }
 
-            camera.Position = transfroms[palikka1].Position;
+            camera.Position = transforms[palikka1].Position;
 
             base.Update(gameTime);
         }
@@ -158,7 +167,7 @@ namespace ReeGame
 
             // TODO: Add your drawing code here
             spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, camera.GetTransformationMatrix(GraphicsDevice.Viewport));
-            RenderSystem.RenderSprites(sprites, transfroms, spriteBatch);
+            RenderSystem.RenderSprites(sprites, transforms, spriteBatch);
             spriteBatch.End();
             base.Draw(gameTime);
         }
@@ -209,13 +218,13 @@ namespace ReeGame
         /// <param name="size">Size</param>
         void CreateTransform(Entity entity, Vector position, Vector size)
         {
-            if (!transfroms.ContainsKey(entity))
+            if (!transforms.ContainsKey(entity))
             {
-                transfroms.Add(entity, new Transform(position, size));
+                transforms.Add(entity, new Transform(position, size));
             }
             else
             {
-                transfroms[entity] = new Transform(position, size);
+                transforms[entity] = new Transform(position, size);
             }
         }
 
