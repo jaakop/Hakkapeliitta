@@ -64,14 +64,14 @@ namespace ReeGame
 
             group = CreateNewGroup(palikka1);
 
-            for(int i = 0; i < 15 - 1; i++)
+            for(int i = 0; i < 40 - 1; i++)
             {
                 Entity palikka = Entity.NewEntity();
                 CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
                 AddMemberToGroup(palikka, group);
             }
 
-            Dictionary<Entity, Vector> groupPositions = groups[group].CalculateGroupMemberPositions(transforms[palikka1], 5, 150);
+            Dictionary<Entity, Vector> groupPositions = groups[group].CalculateGroupMemberPositions(transforms[palikka1], 10, 150);
 
             foreach(KeyValuePair<Entity, Vector> position in groupPositions)
             {

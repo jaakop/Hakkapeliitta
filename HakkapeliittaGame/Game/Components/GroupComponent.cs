@@ -50,7 +50,7 @@ namespace ReeGame.Components
         /// Calculates group positions
         /// </summary>
         /// <param name="leaderEntityTrans">Transform, which points the center of formation</param>
-        /// <param name="rowLenght">number of entities in a row</param>
+        /// <param name="rowLenght">Number of entities in a row</param>
         /// <param name="spacing">Spacing between entities</param>
         /// <returns>Dictionary with the positions</returns>
         public Dictionary<Entity, Vector> CalculateGroupMemberPositions(Transform leaderEntityTrans, int rowLenght, float spacing)
@@ -59,6 +59,7 @@ namespace ReeGame.Components
 
             List<Entity> dummyMembers = Members;
 
+            //Casting to decimal & float is just to make everything smooth with Math shit
             float rowXMiddle = (float)Math.Floor((decimal)(1 + rowLenght) / 2);
             float rowYMiddle = (float)Math.Floor(((float)Math.Ceiling((decimal)Members.Count / rowLenght) + 1) / 2);
 
