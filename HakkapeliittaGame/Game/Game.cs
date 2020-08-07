@@ -32,6 +32,10 @@ namespace ReeGame
         Entity group;
 
         Camera2D camera;
+        Random rnd;
+
+        Dictionary<Entity, Vector> ToBeMoved;
+        Dictionary<Entity, int> speedVariance;
 
         public Game()
         {
@@ -43,6 +47,8 @@ namespace ReeGame
         protected override void Initialize()
         {
             Entity.InitializeKeyIndex();
+
+            rnd = new Random();
 
             IsMouseVisible = true;
             movementSpeed = 7;
@@ -56,24 +62,25 @@ namespace ReeGame
 
             groups = new Dictionary<Entity, GroupComponent>();
 
+            ToBeMoved = new Dictionary<Entity, Vector>();
+            speedVariance = new Dictionary<Entity, int>();
+
             targetPalikka = Entity.NewEntity();
             CreateSprite(targetPalikka, BasicTexture(Color.HotPink), Color.White);
-            
+
             palikka1 = Entity.NewEntity();
             CreatePalikka(palikka1, new Vector(0, 0), new Vector(100, 100));
 
             group = CreateNewGroup(palikka1);
 
-            for(int i = 0; i < 15 - 1; i++)
+            for (int i = 0; i < 15 - 1; i++)
             {
                 Entity palikka = Entity.NewEntity();
                 CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
                 AddMemberToGroup(palikka, group);
             }
 
-            Dictionary<Entity, Vector> groupPositions = groups[group].CalculateGroupMemberPositions(transforms[palikka1], 5, 150);
-
-            foreach(KeyValuePair<Entity, Vector> position in groupPositions)
+            foreach (KeyValuePair<Entity, Vector> position in groups[group].CalculateGroupMemberPositions(transforms[palikka1].Position, 5, 150))
             {
                 Transform transform = transforms[position.Key];
                 transform.Position = position.Value;
@@ -113,50 +120,48 @@ namespace ReeGame
                     Vector mousePosition = new Vector(camera.Position.X + mouseState.Position.X / camera.Zoom - GraphicsDevice.Viewport.Width,
                                                         camera.Position.Y + mouseState.Position.Y / camera.Zoom - GraphicsDevice.Viewport.Height);
                     CreateTransform(targetPalikka, mousePosition, new Vector(25, 25));
+                    foreach (KeyValuePair<Entity, Vector> position in groups[group].CalculateGroupMemberPositions(mousePosition, 5, 150))
+                    {
+                        int speedModifier = rnd.Next(-3, 3);
+                        if (ToBeMoved.ContainsKey(position.Key))
+                            ToBeMoved[position.Key] = position.Value;
+                        else
+                            ToBeMoved.Add(position.Key, position.Value);
+
+                        if (speedVariance.ContainsKey(position.Key))
+                            speedVariance[position.Key] = speedModifier;
+                        else
+                            speedVariance.Add(position.Key, speedModifier);
+                    }
+
+                    int palikkaSpeedModifier = rnd.Next(-3, 3);
+
+                    if (ToBeMoved.ContainsKey(palikka1))
+                        ToBeMoved[palikka1] = mousePosition;
+                    else
+                        ToBeMoved.Add(palikka1, mousePosition);
+
+                    if (speedVariance.ContainsKey(palikka1))
+                        speedVariance[palikka1] = palikkaSpeedModifier;
+                    else
+                        speedVariance.Add(palikka1, palikkaSpeedModifier);
+
                     mousePressed = true;
                 }
             }
-            else if(mouseState.LeftButton == ButtonState.Released)
+            else if (mouseState.LeftButton == ButtonState.Released)
             {
-                mousePressed = false;   
+                mousePressed = false;
             }
 
-            Vector velocity = new Vector(0,0);
-            /*
-            if (Keyboard.GetState().IsKeyDown(Keys.W))
-            {
-                velocity += new Vector(0, -1 * movementSpeed);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.S))
-            {
-                velocity += new Vector(0, 1 * movementSpeed);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
-            {
-                velocity += new Vector(-1 * movementSpeed,0);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
-            {
-                velocity += new Vector(1 * movementSpeed, 0);
-            }
-            */
+            MoveEntity(palikka1);
 
-            if(transforms.ContainsKey(targetPalikka))
-                velocity = Vector.Lerp(transforms[palikka1].Position, transforms[targetPalikka].Position, 0.1f) * movementSpeed;
-
-            if (Math.Abs(velocity.X) > movementSpeed)
-                velocity.X = (velocity.X / Math.Abs(velocity.X)) * movementSpeed;
-            if (Math.Abs(velocity.Y) > movementSpeed)
-                velocity.Y = (velocity.Y / Math.Abs(velocity.Y)) * movementSpeed;
-
-            PhysicsSystem.MoveEntity(palikka1, velocity, ref transforms, rigidBodies);
-
-            foreach(Entity member in groups[group].Members)
+            foreach (Entity member in groups[group].Members)
             {
-                //PhysicsSystem.MoveEntity(member, new Vector(1, 0), ref transforms, rigidBodies);
+                MoveEntity(member);
             }
 
-            camera.Position = transforms[palikka1].Position;
+            // camera.Position = transforms[palikka1].Position;
 
             base.Update(gameTime);
         }
@@ -171,7 +176,23 @@ namespace ReeGame
             spriteBatch.End();
             base.Draw(gameTime);
         }
-        
+
+        void MoveEntity(Entity member)
+        {
+            Vector velocity = new Vector(0, 0);
+
+            if (ToBeMoved.ContainsKey(member))
+                velocity = Vector.Lerp(transforms[member].Position, ToBeMoved[member], 0.1f) * movementSpeed;
+
+            if (Math.Abs(velocity.X) > movementSpeed)
+                velocity.X = (velocity.X / Math.Abs(velocity.X)) * (movementSpeed + speedVariance[member]);
+            if (Math.Abs(velocity.Y) > movementSpeed)
+                velocity.Y = (velocity.Y / Math.Abs(velocity.Y)) * (movementSpeed + speedVariance[member]);
+
+            transforms[member] = new Transform(transforms[member].Position + velocity, transforms[member].Size);
+            //PhysicsSystem.MoveEntity(member, velocity, ref transforms, rigidBodies);
+        }
+
         /// <summary>
         /// Creates basic palikka with rigidbody
         /// </summary>
@@ -264,7 +285,7 @@ namespace ReeGame
         /// <param name="leaderEntity"></param>
         Entity CreateNewGroup(Entity leaderEntity)
         {
-            foreach(KeyValuePair<Entity, GroupComponent> group in groups)
+            foreach (KeyValuePair<Entity, GroupComponent> group in groups)
             {
                 if (group.Value.LeaderEntity == leaderEntity)
                     throw new Exception("Cannot assing leader entity. Entity is leaderEntity of a another group");
@@ -283,9 +304,9 @@ namespace ReeGame
         /// <param name="group"></param>
         void AddMemberToGroup(Entity member, Entity group)
         {
-            foreach(KeyValuePair<Entity, GroupComponent> checkGroup in groups)
+            foreach (KeyValuePair<Entity, GroupComponent> checkGroup in groups)
             {
-                if(checkGroup.Value.LeaderEntity == member)
+                if (checkGroup.Value.LeaderEntity == member)
                     throw new Exception("Cannot assing member entity. Entity is leaderEntity of a another group");
 
                 checkGroup.Value.RemoveMember(member);
