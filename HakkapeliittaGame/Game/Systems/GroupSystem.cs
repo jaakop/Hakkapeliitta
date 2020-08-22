@@ -43,7 +43,7 @@ namespace ReeGame.Systems
         /// Calculates group positions
         /// </summary>
         /// <param name="leaderEntityPos">Position, which points the center of formation</param>
-        /// <param name="rowLenght">number of entities in a row</param>
+        /// <param name="rowLenght">Number of entities in a row</param>
         /// <param name="spacing">Spacing between entities</param>'
         /// <param name="group">Calculated Group</param>
         /// <returns>Dictionary with the positions</returns>
