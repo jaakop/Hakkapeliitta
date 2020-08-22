@@ -10,6 +10,7 @@ using MGPhysics.Components;
 using MGPhysics.Systems;
 
 using ReeGame.Components;
+using ReeGame.Systems;
 
 namespace ReeGame
 {
@@ -80,7 +81,7 @@ namespace ReeGame
                 AddMemberToGroup(palikka, group);
             }
 
-            foreach (KeyValuePair<Entity, Vector> position in groups[group].CalculateGroupMemberPositions(transforms[palikka1].Position, 5, 150))
+            foreach (KeyValuePair<Entity, Vector> position in GroupSystem.CalculateGroupMemberPositions(transforms[palikka1].Position, 5, 150, groups[group]))
             {
                 Transform transform = transforms[position.Key];
                 transform.Position = position.Value;
@@ -120,7 +121,7 @@ namespace ReeGame
                     Vector mousePosition = new Vector(camera.Position.X + mouseState.Position.X / camera.Zoom - GraphicsDevice.Viewport.Width,
                                                         camera.Position.Y + mouseState.Position.Y / camera.Zoom - GraphicsDevice.Viewport.Height);
                     CreateTransform(targetPalikka, mousePosition, new Vector(25, 25));
-                    foreach (KeyValuePair<Entity, Vector> position in groups[group].CalculateGroupMemberPositions(mousePosition, 5, 150))
+                    foreach (KeyValuePair<Entity, Vector> position in GroupSystem.CalculateGroupMemberPositions(mousePosition, 5, 150, groups[group]))
                     {
                         int speedModifier = rnd.Next(-3, 3);
                         if (ToBeMoved.ContainsKey(position.Key))
@@ -290,7 +291,7 @@ namespace ReeGame
                 if (group.Value.LeaderEntity == leaderEntity)
                     throw new Exception("Cannot assing leader entity. Entity is leaderEntity of a another group");
 
-                group.Value.RemoveMember(leaderEntity);
+                GroupSystem.RemoveMember(leaderEntity, group.Value);
             }
             Entity groupEntity = Entity.NewEntity();
             groups.Add(groupEntity, new GroupComponent(leaderEntity));
@@ -309,7 +310,7 @@ namespace ReeGame
                 if (checkGroup.Value.LeaderEntity == member)
                     throw new Exception("Cannot assing member entity. Entity is leaderEntity of a another group");
 
-                checkGroup.Value.RemoveMember(member);
+                GroupSystem.RemoveMember(member, checkGroup.Value);
             }
             groups[group].Members.Add(member);
         }
