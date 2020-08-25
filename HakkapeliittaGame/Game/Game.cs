@@ -162,7 +162,7 @@ namespace ReeGame
                 MoveEntity(member);
             }
 
-            // camera.Position = transforms[palikka1].Position;
+            // camera.Position = transforms[palikka1].Position
 
             base.Update(gameTime);
         }
@@ -182,8 +182,10 @@ namespace ReeGame
         {
             Vector velocity = new Vector(0, 0);
 
-            if (ToBeMoved.ContainsKey(member))
-                velocity = Vector.Lerp(transforms[member].Position, ToBeMoved[member], 0.1f) * movementSpeed;
+            if (!ToBeMoved.ContainsKey(member))
+                return;
+
+            velocity = Vector.Lerp(transforms[member].Position, ToBeMoved[member], 0.1f) * movementSpeed;
 
             if (Math.Abs(velocity.X) > movementSpeed)
                 velocity.X = (velocity.X / Math.Abs(velocity.X)) * (movementSpeed + speedVariance[member]);
@@ -191,6 +193,9 @@ namespace ReeGame
                 velocity.Y = (velocity.Y / Math.Abs(velocity.Y)) * (movementSpeed + speedVariance[member]);
 
             transforms[member] = new Transform(transforms[member].Position + velocity, transforms[member].Size);
+
+            if (transforms[member].Position == ToBeMoved[member])
+                ToBeMoved.Remove(member);
             //PhysicsSystem.MoveEntity(member, velocity, ref transforms, rigidBodies);
         }
 
