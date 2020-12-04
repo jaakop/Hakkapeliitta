@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using ReeGame.Components;
 using MGPhysics;
-using MGPhysics.Components;
 
 namespace ReeGame.Systems
 {
