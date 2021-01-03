@@ -54,6 +54,7 @@ namespace ReeGame
             manager.ComponentManager.RegisterComponent<RigidBody>();
             manager.ComponentManager.RegisterComponent<Sprite>();
             manager.ComponentManager.RegisterComponent<GroupComponent>();
+            manager.ComponentManager.RegisterComponent<MovementComponent>();
 
             ToBeMoved = new Dictionary<Entity, Vector>();
             speedVariance = new Dictionary<Entity, int>();
@@ -80,15 +81,8 @@ namespace ReeGame
                 CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
                 AddMemberToGroup(palikka, group);
             }
-            
-            foreach (KeyValuePair<Entity, Vector> position in GroupSystem.CalculateGroupMemberPositions(
-                manager.ComponentManager.GetComponentArray<Transform>().Array[palikka1].Position, 5, 150,
-                manager.ComponentManager.GetComponentArray<GroupComponent>().Array[group]))
-            {
-                Transform transform = manager.ComponentManager.GetComponentArray<Transform>().Array[position.Key];
-                transform.Position = position.Value;
-                manager.ComponentManager.GetComponentArray<Transform>().Array[position.Key] = transform;
-            }
+
+            MoveGroup(manager.ComponentManager.GetComponent<Transform>(palikka1).Position, group, 100, 10);
 
             base.Initialize();
         }
@@ -109,16 +103,13 @@ namespace ReeGame
 
         protected override void Update(GameTime gameTime)
         {
+            int deltaTime = gameTime.ElapsedGameTime.Milliseconds;
             CheckControls();
 
-            //Loop through entities, that have a rigidbody and move them if they are ment to move
-            foreach(KeyValuePair<Entity, RigidBody> entity in manager.ComponentManager.GetComponentArray<RigidBody>().Array)
-            {
-                MoveEntity(entity.Key);
-            }
+            manager.SystemManager.RegisterSystem(new MovementSystem());
 
             // camera.Position = transforms[palikka1].Position
-
+            manager.SystemManager.Update(manager, deltaTime);
             base.Update(gameTime);
         }
 
@@ -173,7 +164,7 @@ namespace ReeGame
                                                         camera.Position.Y + mouseState.Position.Y / camera.Zoom - GraphicsDevice.Viewport.Height);
                     CreateTransform(targetPalikka, mousePosition, new Vector(25, 25));
 
-                    MoveGroup(mousePosition, group);
+                    MoveGroup(mousePosition, group, movementSpeed, 3);
 
                     pressedKeys[Keys.F20] = true;
                 }
@@ -189,62 +180,42 @@ namespace ReeGame
         /// </summary>
         /// <param name="mousePosition"></param>
         /// <param name="groupEntity"></param>
-        private void MoveGroup(Vector mousePosition, Entity groupEntity)
+        /// <param name="speed">base speed</param>
+        /// <param name="variance">Speed variance</param>
+        private void MoveGroup(Vector mousePosition, Entity groupEntity, float speed, int variance)
         {
-            //Move members
-            foreach (KeyValuePair<Entity, Vector> position in GroupSystem.CalculateGroupMemberPositions(mousePosition, 5, 150,
-                manager.ComponentManager.GetComponentArray<GroupComponent>().Array[groupEntity]))
-            {
-                int speedModifier = rnd.Next(-3, 3);
-                if (ToBeMoved.ContainsKey(position.Key))
-                    ToBeMoved[position.Key] = position.Value;
-                else
-                    ToBeMoved.Add(position.Key, position.Value);
-
-                if (speedVariance.ContainsKey(position.Key))
-                    speedVariance[position.Key] = speedModifier;
-                else
-                    speedVariance.Add(position.Key, speedModifier);
-            }
+            Entity leader = manager.ComponentManager.GetComponent<GroupComponent>(groupEntity).LeaderEntity;
 
             //Move the leader
-            Entity leader = manager.ComponentManager.GetComponentArray<GroupComponent>().Array[groupEntity].LeaderEntity;
-            int palikkaSpeedModifier = rnd.Next(-3, 3);
+            MoveEntity(leader, mousePosition);
 
-            if (ToBeMoved.ContainsKey(leader))
-                ToBeMoved[leader] = mousePosition;
-            else
-                ToBeMoved.Add(leader, mousePosition);
+            //Move members
+            manager.SystemManager.RegisterSystem(new GroupSystem(groupEntity, 5, 100));
 
-            if (speedVariance.ContainsKey(leader))
-                speedVariance[leader] = palikkaSpeedModifier;
-            else
-                speedVariance.Add(leader, palikkaSpeedModifier);
+            Random rand = new Random();
+
+            foreach(Entity member in manager.ComponentManager.GetComponent<GroupComponent>(groupEntity).Members)
+            {
+                MovementComponent mvc = manager.ComponentManager.GetComponent<MovementComponent>(member);
+                mvc.velocity = speed + rand.Next(0, variance);
+                manager.ComponentManager.UpdateComponent(member, mvc);
+            }
+
+            MovementComponent MvC = manager.ComponentManager.GetComponent<MovementComponent>(leader);
+            MvC.velocity = speed;
+            manager.ComponentManager.UpdateComponent(leader, MvC);
         }
 
         /// <summary>
         /// Moves entity
         /// </summary>
         /// <param name="member">Entity to be moved</param>
-        private void MoveEntity(Entity member)
+        private void MoveEntity(Entity member, Vector pos)
         {
-            Vector velocity = new Vector(0, 0);
+            MovementComponent mvC = manager.ComponentManager.GetComponent<MovementComponent>(member);
+            mvC.target = pos;
 
-            if (!ToBeMoved.ContainsKey(member))
-                return;
-
-            velocity = Vector.Lerp(manager.ComponentManager.GetComponentArray<Transform>().Array[member].Position, ToBeMoved[member], 0.1f) * movementSpeed;
-
-            if (Math.Abs(velocity.X) > movementSpeed)
-                velocity.X = (velocity.X / Math.Abs(velocity.X)) * (movementSpeed + speedVariance[member]);
-            if (Math.Abs(velocity.Y) > movementSpeed)
-                velocity.Y = (velocity.Y / Math.Abs(velocity.Y)) * (movementSpeed + speedVariance[member]);
-
-            manager.ComponentManager.GetComponentArray<Transform>().Array[member] = new Transform(manager.ComponentManager.GetComponentArray<Transform>().Array[member].Position + velocity, manager.ComponentManager.GetComponentArray<Transform>().Array[member].Size);
-
-            if (manager.ComponentManager.GetComponentArray<Transform>().Array[member].Position == ToBeMoved[member])
-                ToBeMoved.Remove(member);
-            //PhysicsSystem.MoveEntity(member, velocity, ref transforms, rigidBodies);
+            manager.ComponentManager.UpdateComponent(member, mvC);
         }
 
         /// <summary>
@@ -263,6 +234,34 @@ namespace ReeGame
 
             //Add rigidbody
             CreateRigidBody(palikka, size);
+
+            //Add Movement component
+            CreateMovement(palikka, position, 100);
+        }
+
+        /// <summary>
+        /// Creates a sprite component
+        /// </summary>
+        /// <param name="entity">Sprites entity</param>
+        /// <param name="target">default target pos</param>
+        /// <param name="speed">movement speed</param>
+        private void CreateMovement(Entity entity, Vector target, float speed)
+        {
+            MovementComponent mvc = new MovementComponent
+            {
+                target = target,
+                velocity = speed
+            };
+
+            if (!manager.ComponentManager.GetComponentArray <MovementComponent>().Array.ContainsKey(entity))
+            {
+                manager.ComponentManager.GetComponentArray<MovementComponent>().Array.Add(entity, mvc);
+            }
+            else
+            {
+                manager.ComponentManager.GetComponentArray<MovementComponent>().Array[entity] = mvc;
+            }
+
         }
 
         /// <summary>
@@ -341,10 +340,12 @@ namespace ReeGame
         {
             foreach (KeyValuePair<Entity, GroupComponent> group in manager.ComponentManager.GetComponentArray<GroupComponent>().Array)
             {
+                if (!group.Value.ContainsEntity(leaderEntity)) continue;
+
                 if (group.Value.LeaderEntity == leaderEntity)
                     throw new Exception("Cannot assing leader entity. Entity is leaderEntity of a another group");
 
-                GroupSystem.RemoveMember(leaderEntity, group.Value);
+                group.Value.Members.Remove(leaderEntity);
             }
             Entity groupEntity = manager.EntityManager.CreateEntity();
             manager.ComponentManager.GetComponentArray<GroupComponent>().Array.Add(groupEntity, new GroupComponent(leaderEntity));
@@ -360,10 +361,11 @@ namespace ReeGame
         {
             foreach (KeyValuePair<Entity, GroupComponent> checkGroup in manager.ComponentManager.GetComponentArray<GroupComponent>().Array)
             {
+                if (!checkGroup.Value.ContainsEntity(member)) continue;
                 if (checkGroup.Value.LeaderEntity == member)
                     throw new Exception("Cannot assing member entity. Entity is leaderEntity of a another group");
 
-                GroupSystem.RemoveMember(member, checkGroup.Value);
+                return;
             }
             manager.ComponentManager.GetComponentArray<GroupComponent>().Array[group].Members.Add(member);
         }

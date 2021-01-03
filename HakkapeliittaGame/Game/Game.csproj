@@ -44,7 +44,9 @@
   <ItemGroup>
     <Compile Include="Camera2D.cs" />
     <Compile Include="Components\GroupComponent.cs" />
+    <Compile Include="Components\MovementComponent.cs" />
     <Compile Include="Game.cs" />
+    <Compile Include="Systems\MovementSystem.cs" />
     <Compile Include="Systems\PhysicsSystem.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -56,7 +58,7 @@
     <Compile Include="Components\Vector.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="MGPhysics, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MGPhysics, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\MonoGame-ECS-Engine\MGPhysics\bin\Debug\MGPhysics.dll</HintPath>
     </Reference>
