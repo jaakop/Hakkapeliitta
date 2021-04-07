@@ -8,18 +8,21 @@ using ReeGame.Components;
 
 namespace ReeGame.Systems
 {
-    public static class RenderSystem
+    public class RenderSystem : ISystem
     {
-        /// <summary>
-        /// Draws sprites on to screen
-        /// </summary>
-        /// <param name="sprites">Dictionary of the drawabel sprites</param>
-        /// <param name="transfroms">Dictionary of transfroms</param>
-        /// <param name="spriteBatch">SpriteBatch to draw the sprites with</param>
-        public static void RenderSprites(Dictionary<Entity, Sprite> sprites, Dictionary<Entity, Transform> transfroms, SpriteBatch spriteBatch)
+        private SpriteBatch spriteBatch;
+
+        public RenderSystem(SpriteBatch spriteBatch)
         {
-            foreach(KeyValuePair<Entity, Sprite> sprite in sprites)
+            this.spriteBatch = spriteBatch;
+        }
+
+        public void Call(ECSManager manager, int deltaTime)
+        {
+            foreach(KeyValuePair<Entity, Sprite> sprite in manager.ComponentManager.GetComponentArray<Sprite>().Array)
             {
+                Dictionary<Entity, Transform> transfroms = manager.ComponentManager.GetComponentArray<Transform>().Array;
+
                 if (!transfroms.ContainsKey(sprite.Key))
                     continue;
 
@@ -30,6 +33,7 @@ namespace ReeGame.Systems
                                                 transform.Size.IntegerX, transform.Size.IntegerY), 
                                  sprite.Value.ColorMask);
             }
+
         }
     }
 }

@@ -84,6 +84,39 @@ namespace ReeGame
 
             MoveGroup(manager.ComponentManager.GetComponent<Transform>(palikka1).Position, group, 100, 10);
 
+            Entity leader = manager.EntityManager.CreateEntity();
+            Entity secondGroup = CreateNewGroup(leader);
+
+            CreatePalikka(leader, new Vector(600,0), new Vector(100, 100));
+
+            for (int i = 0; i < 15 - 1; i++)
+            {
+                Entity palikka = manager.EntityManager.CreateEntity();
+                CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
+                CreateSprite(palikka, BasicTexture(Color.HotPink, GraphicsDevice), Color.White);
+                AddMemberToGroup(palikka, secondGroup);
+            }
+
+            MoveGroup(manager.ComponentManager.GetComponent<Transform>(leader).Position, secondGroup, 100, 10);
+
+
+            leader = manager.EntityManager.CreateEntity();
+            secondGroup = CreateNewGroup(leader);
+
+            CreatePalikka(leader, new Vector(-600, 0), new Vector(100, 100));
+
+            for (int i = 0; i < 15 - 1; i++)
+            {
+                Entity palikka = manager.EntityManager.CreateEntity();
+                CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
+                CreateSprite(palikka, BasicTexture(Color.RosyBrown, GraphicsDevice), Color.White);
+                AddMemberToGroup(palikka, secondGroup);
+            }
+
+            MoveGroup(manager.ComponentManager.GetComponent<Transform>(leader).Position, secondGroup, 100, 10);
+
+
+            manager.SystemManager.RegisterSystem(new MovementSystem());
             base.Initialize();
         }
 
@@ -106,7 +139,6 @@ namespace ReeGame
             int deltaTime = gameTime.ElapsedGameTime.Milliseconds;
             CheckControls();
 
-            manager.SystemManager.RegisterSystem(new MovementSystem());
 
             // camera.Position = transforms[palikka1].Position
             manager.SystemManager.Update(manager, deltaTime);
@@ -119,7 +151,7 @@ namespace ReeGame
 
             // TODO: Add your drawing code here
             spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, camera.GetTransformationMatrix(GraphicsDevice.Viewport));
-            RenderSystem.RenderSprites(manager.ComponentManager.GetComponentArray<Sprite>().Array, manager.ComponentManager.GetComponentArray<Transform>().Array, spriteBatch);
+            CallOneTimeSystems(new RenderSystem(spriteBatch), gameTime.ElapsedGameTime.Milliseconds);
             spriteBatch.End();
             base.Draw(gameTime);
         }
@@ -190,7 +222,7 @@ namespace ReeGame
             MoveEntity(leader, mousePosition);
 
             //Move members
-            manager.SystemManager.RegisterSystem(new GroupSystem(groupEntity, 5, 100));
+            CallOneTimeSystems(new GroupSystem(groupEntity, 5, 100), 0);
 
             Random rand = new Random();
 
@@ -259,7 +291,7 @@ namespace ReeGame
             }
             else
             {
-                manager.ComponentManager.GetComponentArray<MovementComponent>().Array[entity] = mvc;
+                manager.ComponentManager.UpdateComponent(entity, mvc);
             }
 
         }
@@ -279,7 +311,7 @@ namespace ReeGame
             }
             else
             {
-                manager.ComponentManager.GetComponentArray<Sprite>().Array[entity] = new Sprite(texture, color);
+                manager.ComponentManager.UpdateComponent(entity, new Sprite(texture, color));
             }
 
         }
@@ -298,7 +330,7 @@ namespace ReeGame
             }
             else
             {
-                manager.ComponentManager.GetComponentArray<Transform>().Array[entity] = new Transform(position, size);
+                manager.ComponentManager.UpdateComponent(entity, new Transform(position, size));
             }
         }
 
@@ -315,7 +347,7 @@ namespace ReeGame
             }
             else
             {
-                manager.ComponentManager.GetComponentArray<RigidBody>().Array[entity] = new RigidBody(size);
+                manager.ComponentManager.UpdateComponent(entity, new RigidBody(size));
             }
         }
 
@@ -368,6 +400,11 @@ namespace ReeGame
                 return;
             }
             manager.ComponentManager.GetComponentArray<GroupComponent>().Array[group].Members.Add(member);
+        }
+
+        public void CallOneTimeSystems(ISystem system, int deltaTime)
+        {
+            system.Call(manager, deltaTime);
         }
     }
 }

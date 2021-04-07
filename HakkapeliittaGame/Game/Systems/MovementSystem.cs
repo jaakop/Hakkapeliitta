@@ -9,7 +9,7 @@ using ReeGame.Components;
 
 namespace ReeGame.Systems
 {
-    class MovementSystem : ISystem
+    public class MovementSystem : ISystem
     {
         public void Call(ECSManager manager, int deltaTime)
         {
