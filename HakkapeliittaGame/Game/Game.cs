@@ -74,7 +74,7 @@ namespace ReeGame
 
             group = CreateNewGroup(palikka1);
 
-            for (int i = 0; i < 15 - 1; i++)
+            for (int i = 0; i < rnd.Next(6, 40) - 1; i++)
             {
                 Entity palikka = manager.EntityManager.CreateEntity();
                 CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
@@ -88,7 +88,7 @@ namespace ReeGame
 
             CreatePalikka(leader, new Vector(600,0), new Vector(100, 100));
 
-            for (int i = 0; i < 25 - 1; i++)
+            for (int i = 0; i < rnd.Next(6, 40) - 1; i++)
             {
                 Entity palikka = manager.EntityManager.CreateEntity();
                 CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
@@ -104,7 +104,7 @@ namespace ReeGame
 
             CreatePalikka(leader, new Vector(-600, 0), new Vector(100, 100));
 
-            for (int i = 0; i < 25 - 1; i++)
+            for (int i = 0; i < rnd.Next(6, 40) - 1; i++)
             {
                 Entity palikka = manager.EntityManager.CreateEntity();
                 CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));

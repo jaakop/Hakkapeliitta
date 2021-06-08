@@ -35,7 +35,9 @@ namespace ReeGame.Systems
             Entity middleMember = group.Members[Convert.ToInt32((rowXMiddle - 1) + (rowLenght * (rowYMiddle - 1)))];
             group.Members.Add(middleMember);
 
-            for (int i = 0; i < Math.Ceiling((decimal)group.Members.Count / rowLenght); i++)
+            int rowHeight = (int)Math.Ceiling((decimal)group.Members.Count / rowLenght);
+
+            for (int i = 0; i < rowHeight; i++)
             {
                 for (int j = 0; j < rowLenght; j++)
                 {
@@ -53,6 +55,13 @@ namespace ReeGame.Systems
 
                     pos.X += spacing * (j - (rowXMiddle - 1));
                     pos.Y += spacing * (i - (rowYMiddle - 1));
+
+                    if (i == rowHeight - 1 && group.Members.Count % rowLenght != 0)
+                    {
+                        int membersMissing = -(group.Members.Count - (i + 1) * rowLenght);
+                        pos.X += spacing * (membersMissing - (rowLenght - membersMissing >= rowXMiddle ? 1 : 2));
+                        if ((rowLenght - membersMissing) % 2 == 0) pos.X += spacing / 2;
+                    }
 
                     MovementComponent mvC = manager.ComponentManager.GetComponent<MovementComponent>(group.Members[memberIndex]);
                     mvC.target = pos;
