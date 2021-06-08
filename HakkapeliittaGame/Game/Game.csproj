@@ -60,7 +60,7 @@
   <ItemGroup>
     <Reference Include="MGPhysics, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\MonoGame-ECS-Engine\MGPhysics\bin\Debug\MGPhysics.dll</HintPath>
+      <HintPath>..\..\..\ReeGame\MGPhysics\bin\Debug\MGPhysics.dll</HintPath>
     </Reference>
     <Reference Include="MonoGame.Framework, Version=3.7.1.189, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
