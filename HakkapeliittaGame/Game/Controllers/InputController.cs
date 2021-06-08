@@ -17,12 +17,15 @@ namespace ReeGame.Controllers
 {
     class InputController
     {
-        List<KeyMapping> keyMappings;
+        private List<KeyMapping> keyMappings;
 
         public bool leftMouseButtonDown;
         public bool middleMouseButtonDown;
         public bool rightMouseButtonDown;
 
+        /// <summary>
+        /// Input controller
+        /// </summary>
         public InputController()
         {
             leftMouseButtonDown = false;
@@ -31,6 +34,9 @@ namespace ReeGame.Controllers
             keyMappings = new List<KeyMapping>();
         }
 
+        /// <summary>
+        /// Check all input mappings including mouse buttons left middle & right
+        /// </summary>
         public void CheckInput()
         {
             foreach(KeyMapping keyMapping in keyMappings)
@@ -60,6 +66,10 @@ namespace ReeGame.Controllers
             else rightMouseButtonDown = false;
         }
 
+        /// <summary>
+        /// Add a new key mapping to the mappings
+        /// </summary>
+        /// <param name="mapping">The new mapping to add</param>
         public void AddKeyMapping(KeyMapping mapping)
         {
             keyMappings.Add(mapping);
