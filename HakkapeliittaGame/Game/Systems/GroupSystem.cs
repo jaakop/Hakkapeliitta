@@ -28,14 +28,15 @@ namespace ReeGame.Systems
         {
             GroupComponent group = manager.ComponentManager.GetComponent<GroupComponent>(groupEntity);
 
+            //Calculate group dimensions
             float rowXMiddle = (float)Math.Floor((decimal)(1 + rowLenght) / 2);
             float rowYMiddle = (float)Math.Floor(((float)Math.Ceiling((decimal)group.Members.Count / rowLenght) + 1) / 2);
+
+            int rowHeight = (int)Math.Ceiling((decimal)group.Members.Count / rowLenght);
 
             //Move the middle member to last, 'cause there the leader will be placed
             Entity middleMember = group.Members[Convert.ToInt32((rowXMiddle - 1) + (rowLenght * (rowYMiddle - 1)))];
             group.Members.Add(middleMember);
-
-            int rowHeight = (int)Math.Ceiling((decimal)group.Members.Count / rowLenght);
 
             for (int i = 0; i < rowHeight; i++)
             {
@@ -47,15 +48,18 @@ namespace ReeGame.Systems
                     if (memberIndex >= group.Members.Count)
                         break;
 
+                    //Check if current member is the middle member. If so we skip it
                     if (i == rowYMiddle - 1 && j == rowXMiddle - 1)
                     {
                         j += 1;
                         memberIndex = j + (rowLenght * i);
                     }
 
+                    //Set the position
                     pos.X += spacing * (j - (rowXMiddle - 1));
                     pos.Y += spacing * (i - (rowYMiddle - 1));
 
+                    //Adjust the last row to be centered
                     if (i == rowHeight - 1 && group.Members.Count % rowLenght != 0)
                     {
                         int membersMissing = -(group.Members.Count - (i + 1) * rowLenght);
@@ -63,6 +67,7 @@ namespace ReeGame.Systems
                         if ((rowLenght - membersMissing) % 2 == 0) pos.X += spacing / 2;
                     }
 
+                    //Apply the position
                     MovementComponent mvC = manager.ComponentManager.GetComponent<MovementComponent>(group.Members[memberIndex]);
                     mvC.target = pos;
 
