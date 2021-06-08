@@ -57,6 +57,10 @@
     <Compile Include="Components\Transform.cs" />
     <Compile Include="Components\Vector.cs" />
     <Compile Include="Controllers\KeyMapping.cs" />
+    <Compile Include="Controllers\InputController.cs" />
+    <Compile Include="Controllers\ArmyController.cs" />
+    <Compile Include="Controllers\PlayerController.cs" />
+    <Compile Include="Controllers\GameController.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MGPhysics, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
