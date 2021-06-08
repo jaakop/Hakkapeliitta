@@ -19,6 +19,7 @@ namespace ReeGame
         SpriteBatch spriteBatch;
 
         ECSManager manager;
+        InputController inputController;
 
         int movementSpeed;
 
@@ -29,8 +30,6 @@ namespace ReeGame
         Camera2D camera;
         Random rnd;
 
-        Dictionary<Entity, Vector> ToBeMoved;
-        Dictionary<Entity, int> speedVariance;
         Dictionary<Keys, bool> pressedKeys;
 
         public Game()
@@ -43,6 +42,7 @@ namespace ReeGame
         protected override void Initialize()
         {
             manager = new ECSManager();
+            inputController = new InputController();
 
             rnd = new Random();
 
@@ -57,8 +57,6 @@ namespace ReeGame
             manager.ComponentManager.RegisterComponent<GroupComponent>();
             manager.ComponentManager.RegisterComponent<MovementComponent>();
 
-            ToBeMoved = new Dictionary<Entity, Vector>();
-            speedVariance = new Dictionary<Entity, int>();
             pressedKeys = new Dictionary<Keys, bool>
             {
 
@@ -118,6 +116,37 @@ namespace ReeGame
 
 
             manager.SystemManager.RegisterSystem(new MovementSystem());
+
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
+                if (!graphics.IsFullScreen)
+                {
+                    graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+                    graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+                }
+                else
+                {
+                    graphics.PreferredBackBufferWidth = 800;
+                    graphics.PreferredBackBufferHeight = 480;
+                }
+                graphics.ToggleFullScreen();
+            }, Keys.F11, true));
+
+            inputController.AddKeyMapping(new KeyMapping(Exit, Keys.Escape));
+
+            inputController.LeftMouseButtonMapping = () =>
+            {
+                Point mousePos = Mouse.GetState().Position;
+                if (GraphicsDevice.Viewport.Bounds.Contains(mousePos) && !inputController.leftMouseButtonDown)
+                {
+                    Vector mousePosition = new Vector(camera.Position.X + mousePos.X / camera.Zoom - GraphicsDevice.Viewport.Width,
+                                                        camera.Position.Y + mousePos.Y / camera.Zoom - GraphicsDevice.Viewport.Height);
+                    CreateTransform(targetPalikka, mousePosition, new Vector(25, 25));
+
+                    MoveGroup(mousePosition, group, movementSpeed, 3);
+                }
+            };
+
             base.Initialize();
         }
 
@@ -138,7 +167,7 @@ namespace ReeGame
         protected override void Update(GameTime gameTime)
         {
             int deltaTime = gameTime.ElapsedGameTime.Milliseconds;
-            CheckControls();
+            inputController.CheckInput();
 
 
             // camera.Position = transforms[palikka1].Position
@@ -155,57 +184,6 @@ namespace ReeGame
             CallOneTimeSystems(new RenderSystem(spriteBatch), gameTime.ElapsedGameTime.Milliseconds);
             spriteBatch.End();
             base.Draw(gameTime);
-        }
-
-        /// <summary>
-        /// Checks controls
-        /// </summary>
-        private void CheckControls()
-        {
-            MouseState mouseState = Mouse.GetState();
-
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-            {
-                Exit();
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.F11) && !pressedKeys[Keys.F11])
-            {
-                if (!graphics.IsFullScreen)
-                {
-                    graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-                    graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-                }
-                else
-                {
-                    graphics.PreferredBackBufferWidth = 800;
-                    graphics.PreferredBackBufferHeight = 480;
-                }
-                graphics.ToggleFullScreen();
-                pressedKeys[Keys.F11] = true;
-            }
-            else if (Keyboard.GetState().IsKeyUp(Keys.F11))
-            {
-                pressedKeys[Keys.F11] = false;
-            }
-
-            if (mouseState.LeftButton == ButtonState.Pressed && !pressedKeys[Keys.F20])
-            {
-                if (GraphicsDevice.Viewport.Bounds.Contains(mouseState.Position))
-                {
-                    Vector mousePosition = new Vector(camera.Position.X + mouseState.Position.X / camera.Zoom - GraphicsDevice.Viewport.Width,
-                                                        camera.Position.Y + mouseState.Position.Y / camera.Zoom - GraphicsDevice.Viewport.Height);
-                    CreateTransform(targetPalikka, mousePosition, new Vector(25, 25));
-
-                    MoveGroup(mousePosition, group, movementSpeed, 3);
-
-                    pressedKeys[Keys.F20] = true;
-                }
-            }
-            else if (mouseState.LeftButton == ButtonState.Released)
-            {
-                pressedKeys[Keys.F20] = false;
-            }
         }
 
         /// <summary>

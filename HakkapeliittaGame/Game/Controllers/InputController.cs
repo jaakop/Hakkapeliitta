@@ -17,10 +17,17 @@ namespace ReeGame.Controllers
 {
     class InputController
     {
-       List<KeyMapping> keyMappings;
+        List<KeyMapping> keyMappings;
+
+        public bool leftMouseButtonDown;
+        public bool middleMouseButtonDown;
+        public bool rightMouseButtonDown;
 
         public InputController()
         {
+            leftMouseButtonDown = false;
+            middleMouseButtonDown = false;
+            rightMouseButtonDown = false;
             keyMappings = new List<KeyMapping>();
         }
 
@@ -31,9 +38,31 @@ namespace ReeGame.Controllers
                 keyMapping.Check();
             }
 
-            if (Mouse.GetState().LeftButton == ButtonState.Pressed) LeftMouseButtonMapping?.Invoke();
-            if (Mouse.GetState().MiddleButton == ButtonState.Pressed) MiddleMouseButtonMapping?.Invoke();
-            if (Mouse.GetState().RightButton == ButtonState.Pressed) RightMouseButtonMapping?.Invoke();
+            if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+            {
+                LeftMouseButtonMapping?.Invoke();
+                leftMouseButtonDown = true;
+            }
+            else leftMouseButtonDown = false;
+
+            if (Mouse.GetState().MiddleButton == ButtonState.Pressed)
+            {
+                MiddleMouseButtonMapping?.Invoke();
+                middleMouseButtonDown = true;
+            }
+            else middleMouseButtonDown = false;
+
+            if (Mouse.GetState().RightButton == ButtonState.Pressed)
+            {
+                RightMouseButtonMapping?.Invoke();
+                rightMouseButtonDown = true;
+            }
+            else rightMouseButtonDown = false;
+        }
+
+        public void AddKeyMapping(KeyMapping mapping)
+        {
+            keyMappings.Add(mapping);
         }
 
         public Action LeftMouseButtonMapping { get; set; }

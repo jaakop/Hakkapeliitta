@@ -12,7 +12,7 @@ namespace ReeGame.Controllers
 
         bool currentlyDown;
 
-        public KeyMapping(Action action, Keys key, bool pressed)
+        public KeyMapping(Action action, Keys key, bool pressed = false)
         {
             this.action = action;
             this.key = key;
