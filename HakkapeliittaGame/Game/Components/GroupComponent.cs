@@ -19,5 +19,19 @@ namespace ReeGame.Components
             LeaderEntity = leaderEntity;
             Members = new List<Entity>();
         }
+
+        /// <summary>
+        /// Check if entity is a member or leader
+        /// </summary>
+        /// <param name="entity">Entity to check</param>
+        /// <param name="group">Affected Group</param>
+        /// <returns>True if group contains entity and false if not</returns>
+        public bool ContainsEntity(Entity entity)
+        {
+            if (LeaderEntity == entity)
+                return true;
+
+            return Members.Contains(entity);
+        }
     }
 }
