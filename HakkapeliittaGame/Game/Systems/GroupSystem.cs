@@ -32,13 +32,13 @@ namespace ReeGame.Systems
             float rowXMiddle = (float)Math.Floor((decimal)(1 + rowLenght) / 2);
             float rowYMiddle = (float)Math.Floor(((float)Math.Ceiling((decimal)group.Members.Count / rowLenght) + 1) / 2);
 
-            int rowHeight = (int)Math.Ceiling((decimal)group.Members.Count / rowLenght);
+            int groupHeight = (int)Math.Ceiling((decimal)(group.Members.Count + 1) / rowLenght);
 
             //Move the middle member to last, 'cause there the leader will be placed
             Entity middleMember = group.Members[Convert.ToInt32((rowXMiddle - 1) + (rowLenght * (rowYMiddle - 1)))];
             group.Members.Add(middleMember);
 
-            for (int i = 0; i < rowHeight; i++)
+            for (int i = 0; i < groupHeight; i++)
             {
                 for (int j = 0; j < rowLenght; j++)
                 {
@@ -60,7 +60,7 @@ namespace ReeGame.Systems
                     pos.Y += spacing * (i - (rowYMiddle - 1));
 
                     //Adjust the last row to be centered
-                    if (i == rowHeight - 1 && group.Members.Count % rowLenght != 0)
+                    if (i == groupHeight - 1 && group.Members.Count % rowLenght != 0)
                     {
                         int membersMissing = -(group.Members.Count - (i + 1) * rowLenght);
                         pos.X += spacing * (membersMissing - (rowLenght - membersMissing >= rowXMiddle ? 1 : 2));
