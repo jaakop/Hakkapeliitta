@@ -11,10 +11,10 @@ namespace ReeGame.Systems
 {
     public class GroupSystem : ISystem
     {
-        Entity groupEntity;
+        private Entity groupEntity;
 
-        int rowLenght;
-        float spacing;
+        private int rowLenght;
+        private float spacing;
 
         public GroupSystem(Entity groupE, int rowL, float spacing)
         {
