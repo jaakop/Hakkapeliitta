@@ -68,7 +68,7 @@ namespace ReeGame.Systems
                         //Adjust members if they need to be "between" the member positions
                         if (((rowLenght - membersMissing) % 2 == 0 && rowLenght % 2 != 0) 
                             || ((rowLenght - membersMissing) % 2 != 0 && rowLenght % 2 == 0))
-                                pos.X += spacing / (rowLenght - membersMissing <= rowXMiddle ? -2 : 2);
+                                pos.X += spacing / (rowLenght - membersMissing <= rowXMiddle && rowLenght % 2 == 0 ? -2 : 2);
                     }
 
                     //Apply the position
