@@ -66,6 +66,8 @@ namespace ReeGame
 
             MoveGroup(manager.ComponentManager.GetComponent<Transform>(palikka1).Position, group, 100, 10);
 
+            MoveGroup(new Vector(0, 0), CreateNewGroup(rnd.Next(6, 35)), 100, 10);
+
             manager.SystemManager.RegisterSystem(new MovementSystem());
 
             inputController.AddKeyMapping(new KeyMapping(() =>
