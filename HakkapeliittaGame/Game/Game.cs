@@ -20,6 +20,7 @@ namespace ReeGame
 
         ECSManager manager;
         InputController inputController;
+        ArmyController armyController;
 
         int movementSpeed;
 
@@ -29,8 +30,6 @@ namespace ReeGame
 
         Camera2D camera;
         Random rnd;
-
-        Dictionary<Keys, bool> pressedKeys;
 
         public Game()
         {
@@ -43,6 +42,7 @@ namespace ReeGame
         {
             manager = new ECSManager();
             inputController = new InputController();
+            armyController = new ArmyController(manager);
 
             rnd = new Random();
 
@@ -57,63 +57,14 @@ namespace ReeGame
             manager.ComponentManager.RegisterComponent<GroupComponent>();
             manager.ComponentManager.RegisterComponent<MovementComponent>();
 
-            pressedKeys = new Dictionary<Keys, bool>
-            {
-
-                //Keys from F20 onwards represent mouse buttons
-                //F20 -> Left mouse button
-                { Keys.F20, false },
-                { Keys.F11, false }
-            };
-
             targetPalikka = manager.EntityManager.CreateEntity();
             CreateSprite(targetPalikka, BasicTexture(Color.HotPink, GraphicsDevice), Color.White);
 
-            palikka1 = manager.EntityManager.CreateEntity();
-            CreatePalikka(palikka1, new Vector(0, 0), new Vector(100, 100));
+            group = CreateNewGroup(17);
 
-            group = CreateNewGroup(palikka1);
-
-            for (int i = 0; i < 17 - 1; i++)
-            {
-                Entity palikka = manager.EntityManager.CreateEntity();
-                CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
-                AddMemberToGroup(palikka, group);
-            }
+            palikka1 = manager.ComponentManager.GetComponent<GroupComponent>(group).LeaderEntity;
 
             MoveGroup(manager.ComponentManager.GetComponent<Transform>(palikka1).Position, group, 100, 10);
-
-            Entity leader = manager.EntityManager.CreateEntity();
-            Entity secondGroup = CreateNewGroup(leader);
-
-            CreatePalikka(leader, new Vector(600,0), new Vector(100, 100));
-
-            for (int i = 0; i < 20 - 1; i++)
-            {
-                Entity palikka = manager.EntityManager.CreateEntity();
-                CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
-                CreateSprite(palikka, BasicTexture(Color.HotPink, GraphicsDevice), Color.White);
-                AddMemberToGroup(palikka, secondGroup);
-            }
-
-            MoveGroup(manager.ComponentManager.GetComponent<Transform>(leader).Position, secondGroup, 100, 10);
-
-
-            leader = manager.EntityManager.CreateEntity();
-            secondGroup = CreateNewGroup(leader);
-
-            CreatePalikka(leader, new Vector(-600, 0), new Vector(100, 100));
-
-            for (int i = 0; i < 7 - 1; i++)
-            {
-                Entity palikka = manager.EntityManager.CreateEntity();
-                CreatePalikka(palikka, new Vector(0, 100 + 100 * i), new Vector(75, 75));
-                CreateSprite(palikka, BasicTexture(Color.RosyBrown, GraphicsDevice), Color.White);
-                AddMemberToGroup(palikka, secondGroup);
-            }
-
-            MoveGroup(manager.ComponentManager.GetComponent<Transform>(leader).Position, secondGroup, 100, 10);
-
 
             manager.SystemManager.RegisterSystem(new MovementSystem());
 
@@ -131,7 +82,6 @@ namespace ReeGame
                 }
                 graphics.ToggleFullScreen();
             }, Keys.F11, true));
-
             inputController.AddKeyMapping(new KeyMapping(Exit, Keys.Escape));
 
             inputController.LeftMouseButtonMapping = () =>
@@ -201,7 +151,7 @@ namespace ReeGame
             MoveEntity(leader, mousePosition);
         
             //Move members
-            CallOneTimeSystems(new GroupSystem(groupEntity, 6, 100), 0);
+            CallOneTimeSystems(new GroupSystem(groupEntity, 6, 150), 0);
 
             Random rand = new Random();
 
@@ -347,20 +297,19 @@ namespace ReeGame
         /// Creates a new group
         /// </summary>
         /// <param name="leaderEntity"></param>
-        private Entity CreateNewGroup(Entity leaderEntity)
+        private Entity CreateNewGroup(int amountOfUnits)
         {
-            foreach (KeyValuePair<Entity, GroupComponent> group in manager.ComponentManager.GetComponentArray<GroupComponent>().Array)
+            Entity armyGroup = armyController.AddNewUnitGroup(amountOfUnits);
+            Entity leader = armyController.GetLeaderEntity(armyGroup);
+
+            CreatePalikka(leader, new Vector(0, 0), new Vector(120, 120));
+
+            foreach(Entity member in armyController.GetMembers(armyGroup))
             {
-                if (!group.Value.ContainsEntity(leaderEntity)) continue;
-
-                if (group.Value.LeaderEntity == leaderEntity)
-                    throw new Exception("Cannot assing leader entity. Entity is leaderEntity of a another group");
-
-                group.Value.Members.Remove(leaderEntity);
+                CreatePalikka(member, new Vector(0, 0), new Vector(100, 100));
             }
-            Entity groupEntity = manager.EntityManager.CreateEntity();
-            manager.ComponentManager.GetComponentArray<GroupComponent>().Array.Add(groupEntity, new GroupComponent(leaderEntity));
-            return groupEntity;
+
+            return armyGroup;
         }
 
         /// <summary>
