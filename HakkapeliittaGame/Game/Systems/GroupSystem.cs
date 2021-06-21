@@ -13,36 +13,33 @@ namespace ReeGame.Systems
     {
         private readonly Entity groupEntity;
 
-        private readonly int rowLenght;
-        private readonly float spacing;
-
-        public GroupSystem(Entity groupE, int rowL, float spacing)
+        public GroupSystem(Entity groupE)
         {
             groupEntity = groupE;
-
-            rowLenght = rowL;
-            this.spacing = spacing;
         }
 
         public void Call(ECSManager manager, int deltaTime)
         {
             GroupComponent group = manager.ComponentManager.GetComponent<GroupComponent>(groupEntity);
 
-            //Calculate group dimensions
-            float rowXMiddle = (float)Math.Floor((decimal)(1 + rowLenght) / 2);
-            float rowYMiddle = (float)Math.Floor(((float)Math.Ceiling((decimal)group.Members.Count / rowLenght) + 1) / 2);
+            //Check if rowlenght is greater than the amount of members, if so then make the rowlenght match the amount of members
+            if(group.RowLenght > group.Members.Count + 1) group.RowLenght = group.Members.Count + 1;
 
-            int groupHeight = (int)Math.Ceiling((decimal)(group.Members.Count + 1) / rowLenght);
+            //Calculate group dimensions
+            float rowXMiddle = (float)Math.Floor((decimal)(1 + group.RowLenght) / 2);
+            float rowYMiddle = (float)Math.Floor(((float)Math.Ceiling((decimal)group.Members.Count / group.RowLenght) + 1) / 2);
+
+            int groupHeight = (int)Math.Ceiling((decimal)(group.Members.Count + 1) / group.RowLenght);
 
             //Move the middle member to last, 'cause there the leader will be placed
-            Entity middleMember = group.Members[Convert.ToInt32((rowXMiddle - 1) + (rowLenght * (rowYMiddle - 1)))];
+            Entity middleMember = group.Members[Convert.ToInt32((rowXMiddle - 1) + (group.RowLenght * (rowYMiddle - 1)))];
             group.Members.Add(middleMember);
 
             for (int i = 0; i < groupHeight; i++)
             {
-                for (int j = 0; j < rowLenght; j++)
+                for (int j = 0; j < group.RowLenght; j++)
                 {
-                    int memberIndex = j + (rowLenght * i);
+                    int memberIndex = j + (group.RowLenght * i);
                     Vector pos = manager.ComponentManager.GetComponent<MovementComponent>(group.LeaderEntity).target;
 
                     if (memberIndex >= group.Members.Count)
@@ -52,23 +49,23 @@ namespace ReeGame.Systems
                     if (i == rowYMiddle - 1 && j == rowXMiddle - 1)
                     {
                         j += 1;
-                        memberIndex = j + (rowLenght * i);
+                        memberIndex = j + (group.RowLenght * i);
                     }
 
                     //Set the position
-                    pos.X += spacing * (j - (rowXMiddle - 1));
-                    pos.Y += spacing * (i - (rowYMiddle - 1));
+                    pos.X += group.Spacing * (j - (rowXMiddle - 1));
+                    pos.Y += group.Spacing * (i - (rowYMiddle - 1));
 
                     //Adjust the last row to be centered
-                    if (i == groupHeight - 1 && group.Members.Count % rowLenght != 0)
+                    if (i == groupHeight - 1 && group.Members.Count % group.RowLenght != 0)
                     {
-                        int membersMissing = -(group.Members.Count - (i + 1) * rowLenght);
-                        pos.X += spacing * (membersMissing - (rowLenght - membersMissing >= rowXMiddle ? 1 : 2));
+                        int membersMissing = -(group.Members.Count - (i + 1) * group.RowLenght);
+                        pos.X += group.Spacing * (membersMissing - (group.RowLenght - membersMissing >= rowXMiddle ? 1 : 2));
 
                         //Adjust members if they need to be "between" the member positions
-                        if (((rowLenght - membersMissing) % 2 == 0 && rowLenght % 2 != 0) 
-                            || ((rowLenght - membersMissing) % 2 != 0 && rowLenght % 2 == 0))
-                                pos.X += spacing / (rowLenght - membersMissing <= rowXMiddle && rowLenght % 2 == 0 ? -2 : 2);
+                        if (((group.RowLenght - membersMissing) % 2 == 0 && group.RowLenght % 2 != 0) 
+                            || ((group.RowLenght - membersMissing) % 2 != 0 && group.RowLenght % 2 == 0))
+                                pos.X += group.Spacing / (group.RowLenght - membersMissing <= rowXMiddle && group.RowLenght % 2 == 0 ? -2 : 2);
                     }
 
                     //Apply the position

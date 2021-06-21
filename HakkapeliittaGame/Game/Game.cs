@@ -40,6 +40,8 @@ namespace ReeGame
 
         protected override void Initialize()
         {
+            Common.GraphicsDevice = GraphicsDevice;
+            Common.RND = new Random();
             manager = new ECSManager();
             inputController = new InputController();
             armyController = new ArmyController(manager);
@@ -58,15 +60,18 @@ namespace ReeGame
             manager.ComponentManager.RegisterComponent<MovementComponent>();
 
             targetPalikka = manager.EntityManager.CreateEntity();
-            CreateSprite(targetPalikka, BasicTexture(Color.HotPink, GraphicsDevice), Color.White);
+            Common.CreateSprite(manager, targetPalikka, Common.BasicTexture(Color.HotPink), Color.White);
 
-            group = CreateNewGroup(17);
+            group = armyController.AddNewUnitGroup(Common.RND.Next(4, 44), new Vector(100, 100), movementSpeed, 5);
 
             palikka1 = manager.ComponentManager.GetComponent<GroupComponent>(group).LeaderEntity;
 
-            MoveGroup(manager.ComponentManager.GetComponent<Transform>(palikka1).Position, group, 100, 10);
+            GroupComponent groupComponent = manager.ComponentManager.GetComponent<GroupComponent>(group);
+            groupComponent.RowLenght = Common.RND.Next(4, 14);
+            groupComponent.Spacing = 120f;
+            manager.ComponentManager.UpdateComponent(group, groupComponent);
 
-            MoveGroup(new Vector(0, 0), CreateNewGroup(rnd.Next(6, 35)), 100, 10);
+            armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
 
             manager.SystemManager.RegisterSystem(new MovementSystem());
 
@@ -93,9 +98,9 @@ namespace ReeGame
                 {
                     Vector mousePosition = new Vector(camera.Position.X + mousePos.X / camera.Zoom - GraphicsDevice.Viewport.Width,
                                                         camera.Position.Y + mousePos.Y / camera.Zoom - GraphicsDevice.Viewport.Height);
-                    CreateTransform(targetPalikka, mousePosition, new Vector(25, 25));
+                    Common.CreateTransform(manager, targetPalikka, mousePosition, new Vector(25, 25));
 
-                    MoveGroup(mousePosition, group, movementSpeed, 3);
+                    armyController.MoveGroup(group, mousePosition);
                 }
             };
 
@@ -133,40 +138,9 @@ namespace ReeGame
 
             // TODO: Add your drawing code here
             spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, camera.GetTransformationMatrix(GraphicsDevice.Viewport));
-            CallOneTimeSystems(new RenderSystem(spriteBatch), gameTime.ElapsedGameTime.Milliseconds);
+            Common.CallOneTimeSystems(manager, new RenderSystem(spriteBatch), gameTime.ElapsedGameTime.Milliseconds);
             spriteBatch.End();
             base.Draw(gameTime);
-        }
-
-        /// <summary>
-        /// Set destinations for a group
-        /// </summary>
-        /// <param name="mousePosition"></param>
-        /// <param name="groupEntity"></param>
-        /// <param name="speed">base speed</param>
-        /// <param name="variance">Speed variance</param>
-        private void MoveGroup(Vector mousePosition, Entity groupEntity, float speed, int variance)
-        {
-            Entity leader = manager.ComponentManager.GetComponent<GroupComponent>(groupEntity).LeaderEntity;
-
-            //Move the leader
-            MoveEntity(leader, mousePosition);
-        
-            //Move members
-            CallOneTimeSystems(new GroupSystem(groupEntity, 6, 150), 0);
-
-            Random rand = new Random();
-
-            foreach(Entity member in manager.ComponentManager.GetComponent<GroupComponent>(groupEntity).Members)
-            {
-                MovementComponent mvc = manager.ComponentManager.GetComponent<MovementComponent>(member);
-                mvc.velocity = speed + rand.Next(0, variance);
-                manager.ComponentManager.UpdateComponent(member, mvc);
-            }
-
-            MovementComponent MvC = manager.ComponentManager.GetComponent<MovementComponent>(leader);
-            MvC.velocity = speed;
-            manager.ComponentManager.UpdateComponent(leader, MvC);
         }
 
         /// <summary>
@@ -179,139 +153,6 @@ namespace ReeGame
             mvC.target = pos;
 
             manager.ComponentManager.UpdateComponent(member, mvC);
-        }
-
-        /// <summary>
-        /// Creates basic palikka with rigidbody
-        /// </summary>
-        /// <param name="palikka">Palikka Entity</param>
-        /// <param name="position">Position to set the palikka</param>
-        /// <param name="size">Size of the palikka</param>
-        private void CreatePalikka(Entity palikka, Vector position, Vector size)
-        {
-            //Add sprite
-            CreateSprite(palikka, BasicTexture(Color.White, GraphicsDevice), Color.White);
-
-            //Add transform
-            CreateTransform(palikka, position, size);
-
-            //Add rigidbody
-            CreateRigidBody(palikka, size);
-
-            //Add Movement component
-            CreateMovement(palikka, position, 100);
-        }
-
-        /// <summary>
-        /// Creates a sprite component
-        /// </summary>
-        /// <param name="entity">Sprites entity</param>
-        /// <param name="target">default target pos</param>
-        /// <param name="speed">movement speed</param>
-        private void CreateMovement(Entity entity, Vector target, float speed)
-        {
-            MovementComponent mvc = new MovementComponent
-            {
-                target = target,
-                velocity = speed
-            };
-
-            if (!manager.ComponentManager.GetComponentArray <MovementComponent>().Array.ContainsKey(entity))
-            {
-                manager.ComponentManager.GetComponentArray<MovementComponent>().Array.Add(entity, mvc);
-            }
-            else
-            {
-                manager.ComponentManager.UpdateComponent(entity, mvc);
-            }
-
-        }
-
-        /// <summary>
-        /// Creates a sprite component
-        /// </summary>
-        /// <param name="entity">Sprites entity</param>
-        /// <param name="texture">texture of the sprite</param>
-        /// <param name="color">Color mask</param>
-        private void CreateSprite(Entity entity, Texture2D texture, Color color)
-        {
-
-            if (!manager.ComponentManager.GetComponentArray<Sprite>().Array.ContainsKey(entity))
-            {
-                manager.ComponentManager.GetComponentArray<Sprite>().Array.Add(entity, new Sprite(texture, color));
-            }
-            else
-            {
-                manager.ComponentManager.UpdateComponent(entity, new Sprite(texture, color));
-            }
-
-        }
-
-        /// <summary>
-        /// Creates transform compomnent
-        /// </summary>
-        /// <param name="entity">Transforms Entity</param>
-        /// <param name="position">Position</param>
-        /// <param name="size">Size</param>
-        private void CreateTransform(Entity entity, Vector position, Vector size)
-        {
-            if (!manager.ComponentManager.GetComponentArray<Transform>().Array.ContainsKey(entity))
-            {
-                manager.ComponentManager.GetComponentArray<Transform>().Array.Add(entity, new Transform(position, size));
-            }
-            else
-            {
-                manager.ComponentManager.UpdateComponent(entity, new Transform(position, size));
-            }
-        }
-
-        /// <summary>
-        /// Creates rigidBody component
-        /// </summary>
-        /// <param name="entity">Component entity</param>
-        /// <param name="size">size of the hitbox</param>
-        private void CreateRigidBody(Entity entity, Vector size)
-        {
-            if (!manager.ComponentManager.GetComponentArray<RigidBody>().Array.ContainsKey(entity))
-            {
-                manager.ComponentManager.GetComponentArray<RigidBody>().Array.Add(entity, new RigidBody(size));
-            }
-            else
-            {
-                manager.ComponentManager.UpdateComponent(entity, new RigidBody(size));
-            }
-        }
-
-        /// <summary>
-        /// Creates a basic box texture
-        /// </summary>
-        /// <param name="color">Color of the box</param>
-        /// <returns></returns>
-        public static Texture2D BasicTexture(Color color, GraphicsDevice graphics)
-        {
-            Texture2D basicTexture = new Texture2D(graphics, 1, 1);
-            basicTexture.SetData(new Color[] { color });
-
-            return basicTexture;
-        }
-
-        /// <summary>
-        /// Creates a new group
-        /// </summary>
-        /// <param name="leaderEntity"></param>
-        private Entity CreateNewGroup(int amountOfUnits)
-        {
-            Entity armyGroup = armyController.AddNewUnitGroup(amountOfUnits);
-            Entity leader = armyController.GetLeaderEntity(armyGroup);
-
-            CreatePalikka(leader, new Vector(0, 0), new Vector(120, 120));
-
-            foreach(Entity member in armyController.GetMembers(armyGroup))
-            {
-                CreatePalikka(member, new Vector(0, 0), new Vector(100, 100));
-            }
-
-            return armyGroup;
         }
 
         /// <summary>
@@ -331,10 +172,130 @@ namespace ReeGame
             }
             manager.ComponentManager.GetComponentArray<GroupComponent>().Array[group].Members.Add(member);
         }
+    }
 
-        public void CallOneTimeSystems(ISystem system, int deltaTime)
+    public static class Common
+    {
+        public static GraphicsDevice GraphicsDevice { get; set; }
+        public static Random RND { get; set; }
+
+        public static void CallOneTimeSystems(ECSManager manager, ISystem system, int deltaTime = 0)
         {
             system.Call(manager, deltaTime);
+        }
+
+        /// <summary>
+        /// Creates a basic box texture
+        /// </summary>
+        /// <param name="color">Color of the box</param>
+        /// <returns></returns>
+        public static Texture2D BasicTexture(Color color)
+        {
+            Texture2D basicTexture = new Texture2D(GraphicsDevice, 1, 1);
+            basicTexture.SetData(new Color[] { color });
+
+            return basicTexture;
+        }
+
+        /// <summary>
+        /// Creates basic palikka with rigidbody
+        /// </summary>
+        /// <param name="palikka">Palikka Entity</param>
+        /// <param name="position">Position to set the palikka</param>
+        /// <param name="size">Size of the palikka</param>
+        public static void CreatePalikka(ECSManager manager, Entity palikka, Vector position, Vector size)
+        {
+            //Add sprite
+            CreateSprite(manager, palikka, BasicTexture(Color.White), Color.White);
+
+            //Add transform
+            CreateTransform(manager, palikka, position, size);
+
+            //Add rigidbody
+            CreateRigidBody(manager, palikka, size);
+
+            //Add Movement component
+            CreateMovement(manager, palikka, position, 100);
+        }
+
+        /// <summary>
+        /// Creates a sprite component
+        /// </summary>
+        /// <param name="entity">Sprites entity</param>
+        /// <param name="target">default target pos</param>
+        /// <param name="speed">movement speed</param>
+        public static void CreateMovement(ECSManager manager, Entity entity, Vector target, float speed)
+        {
+            MovementComponent mvc = new MovementComponent
+            {
+                target = target,
+                velocity = speed
+            };
+
+            if (!manager.ComponentManager.GetComponentArray<MovementComponent>().Array.ContainsKey(entity))
+            {
+                manager.ComponentManager.GetComponentArray<MovementComponent>().Array.Add(entity, mvc);
+            }
+            else
+            {
+                manager.ComponentManager.UpdateComponent(entity, mvc);
+            }
+
+        }
+
+        /// <summary>
+        /// Creates a sprite component
+        /// </summary>
+        /// <param name="entity">Sprites entity</param>
+        /// <param name="texture">texture of the sprite</param>
+        /// <param name="color">Color mask</param>
+        public static void CreateSprite(ECSManager manager, Entity entity, Texture2D texture, Color color)
+        {
+
+            if (!manager.ComponentManager.GetComponentArray<Sprite>().Array.ContainsKey(entity))
+            {
+                manager.ComponentManager.GetComponentArray<Sprite>().Array.Add(entity, new Sprite(texture, color));
+            }
+            else
+            {
+                manager.ComponentManager.UpdateComponent(entity, new Sprite(texture, color));
+            }
+
+        }
+
+        /// <summary>
+        /// Creates transform compomnent
+        /// </summary>
+        /// <param name="entity">Transforms Entity</param>
+        /// <param name="position">Position</param>
+        /// <param name="size">Size</param>
+        public static void CreateTransform(ECSManager manager, Entity entity, Vector position, Vector size)
+        {
+            if (!manager.ComponentManager.GetComponentArray<Transform>().Array.ContainsKey(entity))
+            {
+                manager.ComponentManager.GetComponentArray<Transform>().Array.Add(entity, new Transform(position, size));
+            }
+            else
+            {
+                manager.ComponentManager.UpdateComponent(entity, new Transform(position, size));
+            }
+        }
+
+        /// <summary>
+        /// Creates rigidBody component
+        /// </summary>
+        /// <param name="entity">Component entity</param>
+        /// <param name="size">size of the hitbox</param>
+        public static void CreateRigidBody(ECSManager manager, Entity entity, Vector size)
+        {
+            if (!manager.ComponentManager.GetComponentArray<RigidBody>().Array.ContainsKey(entity))
+            {
+                manager.ComponentManager.GetComponentArray<RigidBody>().Array.Add(entity, new RigidBody(size));
+            }
+            else
+            {
+                manager.ComponentManager.UpdateComponent(entity, new RigidBody(size));
+            }
         }
     }
 }

@@ -13,11 +13,16 @@ namespace ReeGame.Components
     {
         public Entity LeaderEntity { get; set; }
         public List<Entity> Members { get; set; }
+        public int RowLenght { get; set; }
+        public float Spacing { get; set; }
 
-        public GroupComponent(Entity leaderEntity)
+
+        public GroupComponent(Entity leaderEntity, int rowLenght = 5, float spacing = 0f)
         {
             LeaderEntity = leaderEntity;
             Members = new List<Entity>();
+            RowLenght = rowLenght;
+            Spacing = spacing;
         }
 
         /// <summary>
