@@ -60,12 +60,11 @@ namespace ReeGame.Systems
                     if (i == groupHeight - 1 && group.Members.Count % group.RowLenght != 0)
                     {
                         int membersMissing = -(group.Members.Count - (i + 1) * group.RowLenght);
-                        pos.X += group.Spacing * (membersMissing - (group.RowLenght - membersMissing >= rowXMiddle ? 1 : 2));
+                        pos.X += group.Spacing * (membersMissing / 2);
 
                         //Adjust members if they need to be "between" the member positions
-                        if (((group.RowLenght - membersMissing) % 2 == 0 && group.RowLenght % 2 != 0) 
-                            || ((group.RowLenght - membersMissing) % 2 != 0 && group.RowLenght % 2 == 0))
-                                pos.X += group.Spacing / (group.RowLenght - membersMissing <= rowXMiddle && group.RowLenght % 2 == 0 ? -2 : 2);
+                        if ((group.RowLenght - (group.RowLenght - membersMissing)) % 2 != 0)
+                            pos.X += group.Spacing / 2;
                     }
 
                     //Apply the position

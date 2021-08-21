@@ -62,12 +62,12 @@ namespace ReeGame
             targetPalikka = manager.EntityManager.CreateEntity();
             Common.CreateSprite(manager, targetPalikka, Common.BasicTexture(Color.HotPink), Color.White);
 
-            group = armyController.AddNewUnitGroup(Common.RND.Next(4, 44), new Vector(100, 100), movementSpeed, 5);
+            group = armyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5);
 
             palikka1 = manager.ComponentManager.GetComponent<GroupComponent>(group).LeaderEntity;
 
             GroupComponent groupComponent = manager.ComponentManager.GetComponent<GroupComponent>(group);
-            groupComponent.RowLenght = Common.RND.Next(4, 14);
+            groupComponent.RowLenght = 7;
             groupComponent.Spacing = 120f;
             manager.ComponentManager.UpdateComponent(group, groupComponent);
 
@@ -90,6 +90,22 @@ namespace ReeGame
                 graphics.ToggleFullScreen();
             }, Keys.F11, true));
             inputController.AddKeyMapping(new KeyMapping(Exit, Keys.Escape));
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
+                Entity member = manager.EntityManager.CreateEntity();
+                groupComponent.Members.Add(member);
+                Common.CreatePalikka(manager, member, new Vector(0, 0), new Vector(100,100));
+                Common.CreateMovement(manager, member, new Vector(0, 0), movementSpeed + Common.RND.Next(0, 5));
+
+                manager.ComponentManager.UpdateComponent(group, groupComponent);
+                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+            }, Keys.U, true));
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
+                groupComponent.RowLenght++;
+                manager.ComponentManager.UpdateComponent(group, groupComponent);
+                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+            }, Keys.R, true));
 
             inputController.LeftMouseButtonMapping = () =>
             {
