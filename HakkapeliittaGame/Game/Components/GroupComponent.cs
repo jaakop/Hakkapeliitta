@@ -11,18 +11,32 @@ namespace ReeGame.Components
 {
     public struct GroupComponent : IComponent
     {
+        private float direction;
+
         public Entity LeaderEntity { get; set; }
         public List<Entity> Members { get; set; }
         public int RowLenght { get; set; }
         public float Spacing { get; set; }
+        public float Direction {
+            get { return direction; }
+            set {
+                if (value < -360 || value > 360)
+                    throw new ArgumentOutOfRangeException("Direction", "Value must be between 360 degrees and -360 degrees");
+                direction = value;
+            }
+        }
 
 
-        public GroupComponent(Entity leaderEntity, int rowLenght = 5, float spacing = 0f)
+        public GroupComponent(Entity leaderEntity, int rowLenght = 5, float spacing = 0f, float direction = 0f)
         {
             LeaderEntity = leaderEntity;
             Members = new List<Entity>();
             RowLenght = rowLenght;
             Spacing = spacing;
+
+            if (direction < -360 || direction > 360)
+                throw new ArgumentOutOfRangeException("Direction", "Value must be between 360 degrees and -360 degrees");
+            this.direction = direction;
         }
 
         /// <summary>

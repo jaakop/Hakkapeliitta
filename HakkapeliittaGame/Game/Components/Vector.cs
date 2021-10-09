@@ -91,6 +91,24 @@ namespace ReeGame.Components
         }
 
         /// <summary>
+        /// Rotates a vector
+        /// </summary>
+        /// <param name="vector">Vector to rotate</param>
+        /// <param name="angle">Degrees to rotate the vector by</param>
+        /// <returns></returns>
+        public static Vector RotateVector(Vector vector, float angle)
+        {
+            Vector rotatedVector = new Vector();
+
+            double radians = (Math.PI / 180) * angle;
+
+            rotatedVector.X = (float)(Math.Cos(radians) * vector.X - Math.Sin(radians) * vector.Y);
+            rotatedVector.Y = (float)(Math.Sin(radians) * vector.X + Math.Cos(radians) * vector.Y);
+
+            return rotatedVector;
+        }
+
+        /// <summary>
         /// Distance between two points
         /// </summary>
         /// <param name="a"></param>

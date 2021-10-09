@@ -53,21 +53,26 @@ namespace ReeGame.Systems
                     }
 
                     //Set the position
-                    pos.X += group.Spacing * (j - (rowXMiddle - 1));
-                    pos.Y += group.Spacing * (i - (rowYMiddle - 1));
+                    Vector adjustmentVector = new Vector();
+                    adjustmentVector.X += group.Spacing * (j - (rowXMiddle - 1));
+                    adjustmentVector.Y += group.Spacing * (i - (rowYMiddle - 1));
 
                     //Adjust the last row to be centered
                     if (i == groupHeight - 1 && group.Members.Count % group.RowLenght != 0)
                     {
                         int membersMissing = -(group.Members.Count - (i + 1) * group.RowLenght);
-                        pos.X += group.Spacing * (membersMissing / 2);
+                        adjustmentVector.X += group.Spacing * (membersMissing / 2);
 
                         //Adjust members if they need to be "between" the member positions
                         if ((group.RowLenght - (group.RowLenght - membersMissing)) % 2 != 0)
-                            pos.X += group.Spacing / 2;
+                            adjustmentVector.X += group.Spacing / 2;
                     }
 
+                    //Apply angle
+                    adjustmentVector = Vector.RotateVector(adjustmentVector, group.Direction);
+
                     //Apply the position
+                    pos += adjustmentVector;
                     MovementComponent mvC = manager.ComponentManager.GetComponent<MovementComponent>(group.Members[memberIndex]);
                     mvC.target = pos;
 

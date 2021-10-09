@@ -68,7 +68,7 @@ namespace ReeGame
 
             GroupComponent groupComponent = manager.ComponentManager.GetComponent<GroupComponent>(group);
             groupComponent.RowLenght = 7;
-            groupComponent.Spacing = 120f;
+            groupComponent.Spacing = 150f;
             manager.ComponentManager.UpdateComponent(group, groupComponent);
 
             armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
@@ -106,6 +106,20 @@ namespace ReeGame
                 manager.ComponentManager.UpdateComponent(group, groupComponent);
                 armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
             }, Keys.R, true));
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
+                if(groupComponent.Direction - 1 > -360)
+                    groupComponent.Direction -= 1;
+                manager.ComponentManager.UpdateComponent(group, groupComponent);
+                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+            }, Keys.A, false));
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
+                if (groupComponent.Direction + 1 < 360)
+                    groupComponent.Direction += 1;
+                manager.ComponentManager.UpdateComponent(group, groupComponent);
+                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+            }, Keys.D, false));
 
             inputController.LeftMouseButtonMapping = () =>
             {
