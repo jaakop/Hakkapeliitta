@@ -79,6 +79,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\noise.png" />
+    <Content Include="Content\TestShader.fx" />
     <Content Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup>

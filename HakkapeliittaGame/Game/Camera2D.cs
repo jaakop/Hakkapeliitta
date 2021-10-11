@@ -28,9 +28,14 @@ namespace ReeGame
         /// <returns></returns>
         public Matrix GetTransformationMatrix(Viewport viewport)
         {
-            return Matrix.CreateTranslation(new Vector3(-position.X, -position.Y, 0)) *
-                                            Matrix.CreateScale(new Vector3(zoom, zoom, 1)) *
-                                            Matrix.CreateTranslation(new Vector3(viewport.Width * 0.5f, viewport.Height * 0.5f, 0));
+            Matrix view = Matrix.Identity;
+
+            int width = viewport.Width;
+            int height = viewport.Height;
+
+            Matrix projection = Matrix.CreateOrthographicOffCenter(position.X - width/2, position.X + width / 2, position.Y + height/2, position.Y - height / 2, 0, 1) * Matrix.CreateScale(new Vector3(zoom, zoom, 1));
+
+            return view * projection;
         }
 
         public Vector Position { get => position; set => position = value; }

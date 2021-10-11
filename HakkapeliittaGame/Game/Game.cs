@@ -31,6 +31,8 @@ namespace ReeGame
         Camera2D camera;
         Random rnd;
 
+        Effect testEffect;
+
         public Game()
         {
 
@@ -141,7 +143,7 @@ namespace ReeGame
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
+            testEffect = Content.Load<Effect>("TestShader");
             // TODO: use this.Content to load your game content here
         }
 
@@ -166,10 +168,22 @@ namespace ReeGame
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // TODO: Add your drawing code here
-            spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, camera.GetTransformationMatrix(GraphicsDevice.Viewport));
+            Matrix transformMatrix = camera.GetTransformationMatrix(GraphicsDevice.Viewport);
+            Matrix view = Matrix.Identity;
+
+            int width = GraphicsDevice.Viewport.Width;
+            int height = GraphicsDevice.Viewport.Height;
+            Matrix projection = Matrix.CreateOrthographicOffCenter(-width, width, height, -height, 0, 1);
+
+            testEffect.Parameters["WorldViewProjection"].SetValue(transformMatrix);
+
+            // TODO: Add your drawing code here 
+            spriteBatch.Begin(effect: testEffect);
+
             Common.CallOneTimeSystems(manager, new RenderSystem(spriteBatch), gameTime.ElapsedGameTime.Milliseconds);
+
             spriteBatch.End();
+
             base.Draw(gameTime);
         }
 
