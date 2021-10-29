@@ -23,6 +23,8 @@ namespace ReeGame.Controllers
         public bool middleMouseButtonDown;
         public bool rightMouseButtonDown;
 
+        public float previousMouseWheelValue;
+
         /// <summary>
         /// Input controller
         /// </summary>
@@ -31,6 +33,7 @@ namespace ReeGame.Controllers
             leftMouseButtonDown = false;
             middleMouseButtonDown = false;
             rightMouseButtonDown = false;
+            previousMouseWheelValue = 0;
             keyMappings = new List<KeyMapping>();
         }
 
@@ -44,26 +47,31 @@ namespace ReeGame.Controllers
                 keyMapping.Check();
             }
 
-            if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+            var mouseState = Mouse.GetState();
+
+            if (mouseState.LeftButton == ButtonState.Pressed)
             {
                 LeftMouseButtonMapping?.Invoke();
                 leftMouseButtonDown = true;
             }
             else leftMouseButtonDown = false;
 
-            if (Mouse.GetState().MiddleButton == ButtonState.Pressed)
+            if (mouseState.MiddleButton == ButtonState.Pressed)
             {
                 MiddleMouseButtonMapping?.Invoke();
                 middleMouseButtonDown = true;
             }
             else middleMouseButtonDown = false;
 
-            if (Mouse.GetState().RightButton == ButtonState.Pressed)
+            if (mouseState.RightButton == ButtonState.Pressed)
             {
                 RightMouseButtonMapping?.Invoke();
                 rightMouseButtonDown = true;
             }
             else rightMouseButtonDown = false;
+
+            MouseScrollMapping?.Invoke(mouseState.ScrollWheelValue - previousMouseWheelValue);
+            previousMouseWheelValue = mouseState.ScrollWheelValue;
         }
 
         /// <summary>
@@ -78,7 +86,7 @@ namespace ReeGame.Controllers
         public Action LeftMouseButtonMapping { get; set; }
         public Action MiddleMouseButtonMapping { get;  set; }
         public Action RightMouseButtonMapping { get; set; }
-
+        public Action<float> MouseScrollMapping { get; set; }
 
     }
 }
