@@ -23,6 +23,7 @@ namespace ReeGame
         ArmyController armyController;
 
         int movementSpeed;
+        bool boosted;
 
         Entity palikka1;
         Entity targetPalikka;
@@ -53,7 +54,7 @@ namespace ReeGame
             IsMouseVisible = true;
             movementSpeed = 7;
 
-            camera = new Camera2D(new Vector(0, 0), 0.5f);
+            camera = new Camera2D(new Vector(0, -100), 1f);
 
             manager.ComponentManager.RegisterComponent<Transform>();
             manager.ComponentManager.RegisterComponent<RigidBody>();
@@ -122,20 +123,24 @@ namespace ReeGame
                 manager.ComponentManager.UpdateComponent(group, groupComponent);
                 armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
             }, Keys.D, false));
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
+                boosted = true;
+            }, Keys.LeftShift, false));
 
             inputController.LeftMouseButtonMapping = () =>
             {
                 Point mousePos = Mouse.GetState().Position;
-                if (GraphicsDevice.Viewport.Bounds.Contains(mousePos) && !inputController.leftMouseButtonDown)
+                if (GraphicsDevice.Viewport.Bounds.Contains(mousePos) && this.IsActive && !inputController.leftMouseButtonDown)
                 {
-                    Vector mousePosition = new Vector((camera.Position.X + mousePos.X) * 2 - GraphicsDevice.Viewport.Width,
-                                                        (camera.Position.Y + mousePos.Y) * 2 - GraphicsDevice.Viewport.Height) / camera.Zoom / 2;
+                    Vector mousePosition = camera.Position + new Vector(mousePos.X * 2 - GraphicsDevice.Viewport.Width, mousePos.Y * 2 - GraphicsDevice.Viewport.Height) / camera.Zoom / 2;
                     Common.CreateTransform(manager, targetPalikka, mousePosition, new Vector(25, 25));
-
+                    
                     armyController.MoveGroup(group, mousePosition);
                 }
             };
-            inputController.MouseScrollMapping = (float change) => {
+            inputController.MouseScrollMapping = (float change) =>
+            {
                 camera.Zoom += change * 0.0005f;
                 if (camera.Zoom > 1) camera.Zoom = 1;
                 else if (camera.Zoom < 0) camera.Zoom = 0.05f;
@@ -160,12 +165,13 @@ namespace ReeGame
 
         protected override void Update(GameTime gameTime)
         {
+            boosted = false;
             int deltaTime = gameTime.ElapsedGameTime.Milliseconds;
             inputController.CheckInput();
 
 
             // camera.Position = transforms[palikka1].Position
-            manager.SystemManager.Update(manager, deltaTime);
+            manager.SystemManager.Update(manager, deltaTime * (boosted ? 5 : 1));
             base.Update(gameTime);
         }
 
@@ -174,11 +180,6 @@ namespace ReeGame
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             Matrix transformMatrix = camera.GetTransformationMatrix(GraphicsDevice.Viewport);
-            Matrix view = Matrix.Identity;
-
-            int width = GraphicsDevice.Viewport.Width;
-            int height = GraphicsDevice.Viewport.Height;
-            Matrix projection = Matrix.CreateOrthographicOffCenter(-width, width, height, -height, 0, 1);
 
             testEffect.Parameters["WorldViewProjection"].SetValue(transformMatrix);
 

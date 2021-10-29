@@ -23,7 +23,7 @@ namespace ReeGame.Controllers
         public bool middleMouseButtonDown;
         public bool rightMouseButtonDown;
 
-        public float previousMouseWheelValue;
+        private float previousMouseWheelValue;
 
         /// <summary>
         /// Input controller
