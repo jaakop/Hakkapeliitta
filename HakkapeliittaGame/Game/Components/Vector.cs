@@ -261,5 +261,15 @@ namespace ReeGame.Components
             return a.X != b.X && a.Y != b.Y;
         }
 
+        public override bool Equals(object o) 
+        {
+            return o is Vector && Equals((Vector)o); 
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
     }
 }
