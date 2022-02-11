@@ -58,8 +58,8 @@ namespace ReeGame.Systems
 
                     //Set the position
                     Vector adjustmentVector = new Vector();
-                    adjustmentVector.X += group.Spacing * (j - (rowXMiddle - 1));
-                    adjustmentVector.Y += group.Spacing * (i - (rowYMiddle - 1));
+                    adjustmentVector.X += group.Spacing * (j - (rowXMiddle - 1)) + (group.RowVariance * (float)(Common.RND.NextDouble() * 2 - 1));
+                    adjustmentVector.Y += group.Spacing * (i - (rowYMiddle - 1)) + (group.RowVariance * (float)(Common.RND.NextDouble() * 2 - 1));
 
                     //Adjust the last row to be centered
                     if (i == groupHeight - 1 && group.Members.Count % group.RowLenght != 0)

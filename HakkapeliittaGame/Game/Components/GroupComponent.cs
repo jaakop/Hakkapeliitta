@@ -17,6 +17,7 @@ namespace ReeGame.Components
         public List<Entity> Members { get; set; }
         public int RowLenght { get; set; }
         public float Spacing { get; set; }
+        public float RowVariance { get; set; }
         public float Direction {
             get { return direction; }
             set {
@@ -27,12 +28,13 @@ namespace ReeGame.Components
         }
 
 
-        public GroupComponent(Entity leaderEntity, int rowLenght = 5, float spacing = 0f, float direction = 0f)
+        public GroupComponent(Entity leaderEntity, int rowLenght = 5, float spacing = 0f, float direction = 0f, float rowVariance = 0f)
         {
             LeaderEntity = leaderEntity;
             Members = new List<Entity>();
             RowLenght = rowLenght;
             Spacing = spacing;
+            RowVariance = rowVariance;
 
             if (direction < -360 || direction > 360)
                 throw new ArgumentOutOfRangeException("Direction", "Value must be between 360 degrees and -360 degrees");

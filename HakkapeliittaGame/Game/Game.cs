@@ -142,6 +142,23 @@ namespace ReeGame
             }, Keys.D, false));
             inputController.AddKeyMapping(new KeyMapping(() =>
             {
+                groupComponent.RowVariance++;
+
+                manager.ComponentManager.UpdateComponent(group, groupComponent);
+                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+            }, Keys.M, true));
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
+                if (groupComponent.RowVariance <= 0)
+                    return;
+
+                groupComponent.RowVariance--;
+
+                manager.ComponentManager.UpdateComponent(group, groupComponent);
+                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+            }, Keys.N, true));
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
                 boosted = true;
             }, Keys.LeftShift, false));
 
@@ -201,7 +218,7 @@ namespace ReeGame
             testEffect.Parameters["WorldViewProjection"].SetValue(transformMatrix);
 
             // TODO: Add your drawing code here 
-            spriteBatch.Begin(effect: testEffect);
+            spriteBatch.Begin(effect: testEffect, blendState: BlendState.NonPremultiplied);
 
             Common.CallOneTimeSystems(manager, new RenderSystem(spriteBatch), gameTime.ElapsedGameTime.Milliseconds);
 

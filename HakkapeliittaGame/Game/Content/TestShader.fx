@@ -38,7 +38,9 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float4 diffuse = tex2D(TextureSampler, input.TexCoord.xy);
-    return float4(1 - input.TexCoord.x, 1 - input.TexCoord.y, 1, 1);	
+	float l = length(0.5 - input.TexCoord.xy);
+	float d = smoothstep(0.008, 0.1, 0.5 - l);
+    return float4(1, l * 1.5, l * 1.5, d);	
 }
 
 technique BasicColorDrawing
