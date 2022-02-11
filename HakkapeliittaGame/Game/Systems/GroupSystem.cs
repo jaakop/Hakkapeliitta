@@ -22,6 +22,10 @@ namespace ReeGame.Systems
         {
             GroupComponent group = manager.ComponentManager.GetComponent<GroupComponent>(groupEntity);
 
+            //Check if no members
+            if (group.Members.Count < 1)
+                return;
+
             //Check if rowlenght is greater than the amount of members, if so then make the rowlenght match the amount of members
             if(group.RowLenght > group.Members.Count + 1) group.RowLenght = group.Members.Count + 1;
 

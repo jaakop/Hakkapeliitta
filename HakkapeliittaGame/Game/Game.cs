@@ -105,6 +105,17 @@ namespace ReeGame
             }, Keys.U, true));
             inputController.AddKeyMapping(new KeyMapping(() =>
             {
+                if (groupComponent.Members.Count < 1)
+                    return;
+
+                manager.ComponentManager.EntityDestroyed(groupComponent.Members[0]);
+                groupComponent.Members.RemoveAt(0);
+
+                manager.ComponentManager.UpdateComponent(group, groupComponent);
+                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+            }, Keys.I, true));
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
                 groupComponent.RowLenght++;
                 manager.ComponentManager.UpdateComponent(group, groupComponent);
                 armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
@@ -113,6 +124,9 @@ namespace ReeGame
             {
                 if(groupComponent.Direction - 1 > -360)
                     groupComponent.Direction -= 1;
+                else
+                    groupComponent.Direction = 0;
+
                 manager.ComponentManager.UpdateComponent(group, groupComponent);
                 armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
             }, Keys.A, false));
@@ -120,6 +134,9 @@ namespace ReeGame
             {
                 if (groupComponent.Direction + 1 < 360)
                     groupComponent.Direction += 1;
+                else
+                    groupComponent.Direction = 0;
+                
                 manager.ComponentManager.UpdateComponent(group, groupComponent);
                 armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
             }, Keys.D, false));
