@@ -20,14 +20,13 @@ namespace ReeGame
 
         ECSManager manager;
         InputController inputController;
-        ArmyController armyController;
+        PlayerController playerController;
 
         int movementSpeed;
         bool boosted;
 
         Entity palikka1;
         Entity targetPalikka;
-        Entity group;
 
         Camera2D camera;
         Random rnd;
@@ -47,7 +46,7 @@ namespace ReeGame
             Common.RND = new Random();
             manager = new ECSManager();
             inputController = new InputController();
-            armyController = new ArmyController(manager);
+            playerController = new PlayerController(manager, new ArmyController(manager));
 
             rnd = new Random();
 
@@ -65,17 +64,17 @@ namespace ReeGame
             targetPalikka = manager.EntityManager.CreateEntity();
             Common.CreateSprite(manager, targetPalikka, Common.BasicTexture(Color.HotPink), Color.White);
 
-            group = armyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5, 7, 150f);
-            armyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5, 7, 150f);
-            armyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5, 7, 150f);
+            playerController.ArmyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5, 7, 150f);
+            playerController.ArmyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5, 7, 150f);
+            playerController.ArmyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5, 7, 150f);
 
-            palikka1 = manager.ComponentManager.GetComponent<GroupComponent>(group).LeaderEntity;
+            playerController.SelectGroup(0);
 
-            GroupComponent groupComponent = manager.ComponentManager.GetComponent<GroupComponent>(group);
+            palikka1 = manager.ComponentManager.GetComponent<GroupComponent>(playerController.SelectedGroup).LeaderEntity;
 
-            armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
-            armyController.MoveGroup(armyController.GetGroups()[1], new Vector(-500, 0));
-            armyController.MoveGroup(armyController.GetGroups()[2], new Vector(500, 0));
+            playerController.ArmyController.MoveGroup(playerController.SelectedGroup, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+            playerController.ArmyController.MoveGroup(playerController.ArmyController.GetGroups()[1], new Vector(-1000, 0));
+            playerController.ArmyController.MoveGroup(playerController.ArmyController.GetGroups()[2], new Vector(1000, 0));
 
             manager.SystemManager.RegisterSystem(new MovementSystem());
 
@@ -97,71 +96,94 @@ namespace ReeGame
             inputController.AddKeyMapping(new KeyMapping(() =>
             {
                 Entity member = manager.EntityManager.CreateEntity();
+                var groupComponent = playerController.SelectedGroupComponent;
                 groupComponent.Members.Add(member);
-                Common.CreatePalikka(manager, member, manager.ComponentManager.GetComponent<Transform>(groupComponent.LeaderEntity).Position, new Vector(100,100));
+                Common.CreatePalikka(manager, member, manager.ComponentManager.GetComponent<Transform>(playerController.SelectedGroupComponent.LeaderEntity).Position, new Vector(100,100));
                 Common.CreateMovement(manager, member, new Vector(0, 0), movementSpeed + Common.RND.Next(0, 5));
 
-                manager.ComponentManager.UpdateComponent(group, groupComponent);
-                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+                playerController.SelectedGroupComponent = groupComponent;
+                playerController.ArmyController.MoveGroup(playerController.SelectedGroup, manager.ComponentManager.GetComponent<Transform>(groupComponent.LeaderEntity).Position);
             }, Keys.U, true));
             inputController.AddKeyMapping(new KeyMapping(() =>
             {
+                var groupComponent = playerController.SelectedGroupComponent;
                 if (groupComponent.Members.Count < 1)
                     return;
 
-                manager.ComponentManager.EntityDestroyed(groupComponent.Members[0]);
+                manager.ComponentManager.EntityDestroyed(playerController.SelectedGroupComponent.Members[0]);
                 groupComponent.Members.RemoveAt(0);
 
-                manager.ComponentManager.UpdateComponent(group, groupComponent);
-                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+                playerController.SelectedGroupComponent = groupComponent;
+                playerController.ArmyController.MoveGroup(playerController.SelectedGroup, manager.ComponentManager.GetComponent<Transform>(groupComponent.LeaderEntity).Position);
             }, Keys.I, true));
             inputController.AddKeyMapping(new KeyMapping(() =>
             {
+                var groupComponent = playerController.SelectedGroupComponent;
                 groupComponent.RowLenght++;
-                manager.ComponentManager.UpdateComponent(group, groupComponent);
-                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+                playerController.SelectedGroupComponent = groupComponent;
+
+                playerController.ArmyController.MoveGroup(playerController.SelectedGroup, manager.ComponentManager.GetComponent<Transform>(groupComponent.LeaderEntity).Position);
             }, Keys.R, true));
             inputController.AddKeyMapping(new KeyMapping(() =>
             {
-                if(groupComponent.Direction - 1 > -360)
+                var groupComponent = playerController.SelectedGroupComponent;
+
+                if (groupComponent.Direction - 1 > -360)
                     groupComponent.Direction -= 1;
                 else
                     groupComponent.Direction = 0;
 
-                manager.ComponentManager.UpdateComponent(group, groupComponent);
-                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+                playerController.SelectedGroupComponent = groupComponent;
+                playerController.ArmyController.MoveGroup(playerController.SelectedGroup, manager.ComponentManager.GetComponent<Transform>(groupComponent.LeaderEntity).Position);
             }, Keys.A, false));
             inputController.AddKeyMapping(new KeyMapping(() =>
             {
+                var groupComponent = playerController.SelectedGroupComponent;
+
                 if (groupComponent.Direction + 1 < 360)
                     groupComponent.Direction += 1;
                 else
                     groupComponent.Direction = 0;
-                
-                manager.ComponentManager.UpdateComponent(group, groupComponent);
-                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+
+                playerController.SelectedGroupComponent = groupComponent;
+                playerController.ArmyController.MoveGroup(playerController.SelectedGroup, manager.ComponentManager.GetComponent<Transform>(groupComponent.LeaderEntity).Position);
             }, Keys.D, false));
             inputController.AddKeyMapping(new KeyMapping(() =>
             {
+                var groupComponent = playerController.SelectedGroupComponent;
                 groupComponent.RowVariance++;
 
-                manager.ComponentManager.UpdateComponent(group, groupComponent);
-                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+                playerController.SelectedGroupComponent = groupComponent;
+                playerController.ArmyController.MoveGroup(playerController.SelectedGroup, manager.ComponentManager.GetComponent<Transform>(groupComponent.LeaderEntity).Position);
             }, Keys.M, true));
             inputController.AddKeyMapping(new KeyMapping(() =>
             {
+                var groupComponent = playerController.SelectedGroupComponent;
                 if (groupComponent.RowVariance <= 0)
                     return;
 
                 groupComponent.RowVariance--;
 
-                manager.ComponentManager.UpdateComponent(group, groupComponent);
-                armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+                playerController.SelectedGroupComponent = groupComponent;
+                playerController.ArmyController.MoveGroup(playerController.SelectedGroup, manager.ComponentManager.GetComponent<Transform>(groupComponent.LeaderEntity).Position);
             }, Keys.N, true));
             inputController.AddKeyMapping(new KeyMapping(() =>
             {
                 boosted = true;
             }, Keys.LeftShift, false));
+
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
+                playerController.SelectGroup(0);
+            }, Keys.D1, true));
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
+                playerController.SelectGroup(1);
+            }, Keys.D2, true));
+            inputController.AddKeyMapping(new KeyMapping(() =>
+            {
+                playerController.SelectGroup(2);
+            }, Keys.D3, true));
 
             inputController.LeftMouseButtonMapping = () =>
             {
@@ -171,7 +193,7 @@ namespace ReeGame
                     Vector mousePosition = camera.Position + new Vector(mousePos.X * 2 - GraphicsDevice.Viewport.Width, mousePos.Y * 2 - GraphicsDevice.Viewport.Height) / camera.Zoom / 2;
                     Common.CreateTransform(manager, targetPalikka, mousePosition, new Vector(25, 25));
                     
-                    armyController.MoveGroup(group, mousePosition);
+                    playerController.ArmyController.MoveGroup(playerController.SelectedGroup, mousePosition);
                 }
             };
             inputController.MouseScrollMapping = (float change) =>
