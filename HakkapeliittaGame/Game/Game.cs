@@ -65,16 +65,17 @@ namespace ReeGame
             targetPalikka = manager.EntityManager.CreateEntity();
             Common.CreateSprite(manager, targetPalikka, Common.BasicTexture(Color.HotPink), Color.White);
 
-            group = armyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5);
+            group = armyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5, 7, 150f);
+            armyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5, 7, 150f);
+            armyController.AddNewUnitGroup(16, new Vector(100, 100), movementSpeed, 5, 7, 150f);
 
             palikka1 = manager.ComponentManager.GetComponent<GroupComponent>(group).LeaderEntity;
 
             GroupComponent groupComponent = manager.ComponentManager.GetComponent<GroupComponent>(group);
-            groupComponent.RowLenght = 7;
-            groupComponent.Spacing = 150f;
-            manager.ComponentManager.UpdateComponent(group, groupComponent);
 
             armyController.MoveGroup(group, manager.ComponentManager.GetComponent<Transform>(palikka1).Position);
+            armyController.MoveGroup(armyController.GetGroups()[1], new Vector(-500, 0));
+            armyController.MoveGroup(armyController.GetGroups()[2], new Vector(500, 0));
 
             manager.SystemManager.RegisterSystem(new MovementSystem());
 
@@ -97,7 +98,7 @@ namespace ReeGame
             {
                 Entity member = manager.EntityManager.CreateEntity();
                 groupComponent.Members.Add(member);
-                Common.CreatePalikka(manager, member, new Vector(0, 0), new Vector(100,100));
+                Common.CreatePalikka(manager, member, manager.ComponentManager.GetComponent<Transform>(groupComponent.LeaderEntity).Position, new Vector(100,100));
                 Common.CreateMovement(manager, member, new Vector(0, 0), movementSpeed + Common.RND.Next(0, 5));
 
                 manager.ComponentManager.UpdateComponent(group, groupComponent);

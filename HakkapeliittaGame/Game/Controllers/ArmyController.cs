@@ -18,7 +18,7 @@ namespace ReeGame.Controllers
             _groups = new List<Entity>();
         }
 
-        public Entity AddNewUnitGroup(int numberOfSoldiers, Vector sizeOfUnits, float movementSpeed = 5, int variance = 0)
+        public Entity AddNewUnitGroup(int numberOfSoldiers, Vector sizeOfUnits, float movementSpeed = 5, int variance = 0, int rowLength = 1, float spacing = 0)
         {
             Entity groupEntity = _manager.EntityManager.CreateEntity();
 
@@ -30,10 +30,11 @@ namespace ReeGame.Controllers
                 Common.CreateMovement(_manager, members[i], new Vector(0, 0), movementSpeed + Common.RND.Next(0, variance));
             }
 
-            GroupComponent groupComponent = new GroupComponent()
+            GroupComponent groupComponent = new GroupComponent(_manager.EntityManager.CreateEntity())
             {
-                LeaderEntity = _manager.EntityManager.CreateEntity(),
-                Members = members
+                Members = members,
+                RowLenght = rowLength,
+                Spacing = spacing,
             };
 
             Common.CreatePalikka(_manager, groupComponent.LeaderEntity, new Vector(0, 0), sizeOfUnits * 1.20f);
@@ -42,6 +43,7 @@ namespace ReeGame.Controllers
             try
             {
                 _manager.ComponentManager.GetComponentArray<GroupComponent>().Array.Add(groupEntity, groupComponent);
+                _groups.Add(groupEntity);
                 return groupEntity;
             }
             catch (Exception ex)

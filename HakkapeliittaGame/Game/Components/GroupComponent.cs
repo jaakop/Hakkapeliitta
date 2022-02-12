@@ -28,7 +28,7 @@ namespace ReeGame.Components
         }
 
 
-        public GroupComponent(Entity leaderEntity, int rowLenght = 5, float spacing = 0f, float direction = 0f, float rowVariance = 0f)
+        public GroupComponent(Entity leaderEntity, int rowLenght = 1, float spacing = 0f, float direction = 0f, float rowVariance = 0f)
         {
             LeaderEntity = leaderEntity;
             Members = new List<Entity>();
