@@ -29,7 +29,6 @@ namespace ReeGame
         Entity targetPalikka;
 
         Camera2D camera;
-        Random rnd;
 
         Effect testEffect;
 
@@ -47,8 +46,6 @@ namespace ReeGame
             manager = new ECSManager();
             inputController = new InputController();
             playerController = new PlayerController(manager, new ArmyController(manager));
-
-            rnd = new Random();
 
             IsMouseVisible = true;
             movementSpeed = 7;
